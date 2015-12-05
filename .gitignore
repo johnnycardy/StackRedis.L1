@@ -1,0 +1,6 @@
+*.suo
+packages/
+RedisL1/bin/
+RedisL1/obj/
+RedisL1.Test/bin/
+RedisL1.Test/obj/
