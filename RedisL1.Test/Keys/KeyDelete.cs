@@ -7,18 +7,8 @@ using System.Threading.Tasks;
 namespace RedisL1.Test
 {
     [TestClass]
-    public class KeyDelete
+    public class KeyDelete : UnitTestBase
     {
-        private CallMonitoringRedisDatabase _redisDb;
-        private RedisL1Database _memDb;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            _redisDb = UnitTestSetup.SetUp();
-            _memDb = new RedisL1Database(_redisDb);
-        }
-
         [TestMethod]
         public void KeyDelete_AfterSet()
         {

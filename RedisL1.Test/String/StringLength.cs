@@ -6,14 +6,8 @@ using RedisL1.MemoryCache;
 namespace RedisL1.Test
 {
     [TestClass]
-    public class StringLength
+    public class StringLength : UnitTestBase
     {
-        [TestInitialize]
-        public void SetUp()
-        {
-            ObjMemCache.Instance.Flush();
-        }
-
         [TestMethod]
         public void StringLength_Simple()
         {

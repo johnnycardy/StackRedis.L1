@@ -6,18 +6,8 @@ using RedisL1.MemoryCache;
 namespace RedisL1.Test
 {
     [TestClass]
-    public class StringGet
+    public class StringGet : UnitTestBase
     {
-        private CallMonitoringRedisDatabase _redisDb;
-        private RedisL1Database _memDb;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            _redisDb = UnitTestSetup.SetUp();
-            _memDb = new RedisL1Database(_redisDb);
-        }
-
         [TestMethod]
         public void StringGet_Simple()
         {

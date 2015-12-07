@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Net;
 using RedisL1.MemoryCache;
 using RedisL1.MemoryCache.Types;
+using RedisL1.KeyspaceNotifications;
 
 namespace RedisL1
 {
@@ -16,11 +17,22 @@ namespace RedisL1
         private TimeSpan? _defaultExpiry;
         private MemoryStrings _memoryStrings;
 
+        internal DatabaseInstanceData DBData { get; set; }
+
         public RedisL1Database(IDatabase redisDb, TimeSpan? defaultExpiry = default(TimeSpan?))
         {
             _redisDb = redisDb;
             _defaultExpiry = defaultExpiry;
-            _memoryStrings = new MemoryStrings(defaultExpiry);
+
+            //Register for subscriptions and get the in-memory data store
+            DBData = DatabaseRegister.Instance.GetDatabaseInstanceData(this);
+            
+            _memoryStrings = new MemoryStrings(defaultExpiry, DBData.MemoryCache);
+        }
+
+        public void Flush()
+        {
+            DBData.MemoryCache.Flush();
         }
 
         public ConnectionMultiplexer Multiplexer
@@ -290,13 +302,13 @@ namespace RedisL1
 
         public long KeyDelete(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Remove(keys.Select(k => (string)k).ToArray());
+            DBData.MemoryCache.Remove(keys.Select(k => (string)k).ToArray());
             return _redisDb.KeyDelete(keys, flags);
         }
 
         public bool KeyDelete(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Remove(new[] { (string)key });
+            DBData.MemoryCache.Remove(new[] { (string)key });
             return _redisDb.KeyDelete(key, flags);
         }
 
@@ -304,14 +316,14 @@ namespace RedisL1
         {
             foreach (var key in keys)
             {
-                ObjMemCache.Instance.Remove(new[] { (string)key });
+                DBData.MemoryCache.Remove(new[] { (string)key });
             }
             return _redisDb.KeyDeleteAsync(keys, flags);
         }
 
         public Task<bool> KeyDeleteAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Remove(new[] { (string)key });
+            DBData.MemoryCache.Remove(new[] { (string)key });
             return _redisDb.KeyDeleteAsync(key, flags);
         }
 
@@ -327,35 +339,51 @@ namespace RedisL1
 
         public bool KeyExists(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            return _redisDb.KeyExists(key, flags);
+            if (DBData.MemoryCache.ContainsKey(key))
+            {
+                return true;
+            }
+            else
+            {
+                //We need to check redis since we don't know what we *don't* have
+                return _redisDb.KeyExists(key, flags);
+            }
         }
 
-        public Task<bool> KeyExistsAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
+        public async Task<bool> KeyExistsAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            return _redisDb.KeyExistsAsync(key, flags);
+            if (DBData.MemoryCache.ContainsKey(key))
+            {
+                return true;
+            }
+            else
+            {
+                //We need to check redis since we don't know what we *don't* have
+                return await _redisDb.KeyExistsAsync(key, flags);
+            }
         }
 
         public bool KeyExpire(RedisKey key, DateTime? expiry, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Expire(key, expiry);
+            DBData.MemoryCache.Expire(key, expiry);
             return _redisDb.KeyExpire(key, expiry, flags);
         }
 
         public bool KeyExpire(RedisKey key, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Expire(key, expiry);
+            DBData.MemoryCache.Expire(key, expiry);
             return _redisDb.KeyExpire(key, expiry, flags);
         }
 
         public Task<bool> KeyExpireAsync(RedisKey key, DateTime? expiry, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Expire(key, expiry);
+            DBData.MemoryCache.Expire(key, expiry);
             return _redisDb.KeyExpireAsync(key, expiry, flags);
         }
 
         public Task<bool> KeyExpireAsync(RedisKey key, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Expire(key, expiry);
+            DBData.MemoryCache.Expire(key, expiry);
             return _redisDb.KeyExpireAsync(key, expiry, flags);
         }
 
@@ -1256,14 +1284,14 @@ namespace RedisL1
         {
             foreach(var kvp in values)
             {
-                ObjMemCache.Instance.Add(kvp.Key, kvp.Value, _defaultExpiry, when);
+                DBData.MemoryCache.Add(kvp.Key, kvp.Value, _defaultExpiry, when);
             }
             return _redisDb.StringSet(values, when, flags);
         }
 
         public bool StringSet(RedisKey key, RedisValue value, TimeSpan? expiry = default(TimeSpan?), When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Add(key, value, expiry, when);
+            DBData.MemoryCache.Add(key, value, expiry, when);
             return _redisDb.StringSet(key, value, expiry, when, flags);
         }
 
@@ -1271,14 +1299,14 @@ namespace RedisL1
         {
             foreach (var kvp in values)
             {
-                ObjMemCache.Instance.Add(kvp.Key, kvp.Value, _defaultExpiry, when);
+                DBData.MemoryCache.Add(kvp.Key, kvp.Value, _defaultExpiry, when);
             }
             return _redisDb.StringSetAsync(values, when, flags);
         }
 
         public Task<bool> StringSetAsync(RedisKey key, RedisValue value, TimeSpan? expiry = default(TimeSpan?), When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            ObjMemCache.Instance.Add(key, value, expiry, when);
+            DBData.MemoryCache.Add(key, value, expiry, when);
             return _redisDb.StringSetAsync(key, value, expiry, when, flags);
         }
 

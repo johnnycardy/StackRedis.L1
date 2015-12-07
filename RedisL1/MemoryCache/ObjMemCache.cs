@@ -12,17 +12,15 @@ namespace RedisL1.MemoryCache
     {
         private static readonly object _lockObj = new object();
         private System.Runtime.Caching.MemoryCache _cache;
-
-        internal static ObjMemCache Instance = new ObjMemCache();
-
+        
         internal ObjMemCache()
         {
-            Create();
+            Flush();
         }
 
-        private void Create()
+        public bool ContainsKey(string key)
         {
-            _cache = new System.Runtime.Caching.MemoryCache("cardy.redis.objmemcache");
+            return _cache.Contains(key);
         }
         
         public void Add(string key, object o, TimeSpan? expiry, When when)
@@ -113,8 +111,12 @@ namespace RedisL1.MemoryCache
         {
             lock (_lockObj)
             {
-                _cache.Dispose();
-                Create();
+                if(_cache != null)
+                {
+                    _cache.Dispose();
+                }
+
+                _cache = new System.Runtime.Caching.MemoryCache("cardy.redis.objmemcache");
             }
         }
 

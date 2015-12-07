@@ -7,18 +7,8 @@ using System.Threading.Tasks;
 namespace RedisL1.Test
 {
     [TestClass]
-    public class StringSetAsync
+    public class StringSetAsync : UnitTestBase
     {
-        private CallMonitoringRedisDatabase _redisDb;
-        private RedisL1Database _memDb;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            _redisDb = UnitTestSetup.SetUp();
-            _memDb = new RedisL1Database(_redisDb);
-        }
-
         [TestMethod]
         public async Task StringSetAsync_ThenGet()
         {

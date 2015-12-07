@@ -10,15 +10,18 @@ namespace RedisL1.MemoryCache.Types
     internal class MemoryStrings
     {
         private TimeSpan? _defaultExpiry;
-        internal MemoryStrings(TimeSpan? defaultExpiry)
+        private ObjMemCache _memCache;
+        
+        internal MemoryStrings(TimeSpan? defaultExpiry, ObjMemCache memCache)
         {
             _defaultExpiry = defaultExpiry;
+            _memCache = memCache;
         }
 
         internal async Task<long> StringLengthAsync(string key, Func<Task<long>> retrieval)
         {
             //Check if the string is in memory
-            var val = ObjMemCache.Instance.Get<RedisValue>(key);
+            var val = _memCache.Get<RedisValue>(key);
             if(val.HasValue)
             {
                 return ((string)val.Value).Length;
@@ -27,7 +30,7 @@ namespace RedisL1.MemoryCache.Types
             {
                 //Check if we've already cached the length
                 string lenKey = key + ":RedisL1:StringLength";
-                val = ObjMemCache.Instance.Get<RedisValue>(lenKey);
+                val = _memCache.Get<RedisValue>(lenKey);
                 if(val.HasValue)
                 {
                     return (long)val.Value;
@@ -35,7 +38,7 @@ namespace RedisL1.MemoryCache.Types
                 else
                 {
                     long length = await retrieval();
-                    ObjMemCache.Instance.Add(lenKey, length, _defaultExpiry, When.Always);
+                    _memCache.Add(lenKey, length, _defaultExpiry, When.Always);
                     return length;
                 }
             }
@@ -60,7 +63,7 @@ namespace RedisL1.MemoryCache.Types
 
             for (int i = 0; i < keys.Length; i++)
             {
-                var cachedItem = ObjMemCache.Instance.Get<RedisValue>(keys[i]);
+                var cachedItem = _memCache.Get<RedisValue>(keys[i]);
                 if (cachedItem.HasValue)
                 {
                     result[i] = cachedItem.Value;
@@ -85,7 +88,7 @@ namespace RedisL1.MemoryCache.Types
                         result[originalIndex] = redisResult;
 
                         //Cache this key for next time
-                        ObjMemCache.Instance.Add(keys[originalIndex], redisResult, _defaultExpiry, When.Always);
+                        _memCache.Add(keys[originalIndex], redisResult, _defaultExpiry, When.Always);
                     }
                 }
             }

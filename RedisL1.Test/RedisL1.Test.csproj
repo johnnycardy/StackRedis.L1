@@ -54,6 +54,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="KeyspaceEvents\Keyspace_del.cs" />
+    <Compile Include="Keys\KeyExistsAsync.cs" />
+    <Compile Include="Keys\KeyExists.cs" />
     <Compile Include="Keys\KeyExpireAsync.cs" />
     <Compile Include="Keys\KeyExpire.cs" />
     <Compile Include="CallMonitoringRedisDatabase.cs" />
@@ -64,7 +67,7 @@
     <Compile Include="String\StringLength.cs" />
     <Compile Include="String\StringSet.cs" />
     <Compile Include="String\StringSetAsync.cs" />
-    <Compile Include="UnitTestSetup.cs" />
+    <Compile Include="UnitTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -45,6 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KeyspaceNotifications\DatabaseRegister.cs" />
+    <Compile Include="KeyspaceNotifications\NotificationListener.cs" />
     <Compile Include="RedisL1Database.cs" />
     <Compile Include="MemoryCache\ObjMemCache.cs" />
     <Compile Include="MemoryCache\Types\MemoryString.cs" />

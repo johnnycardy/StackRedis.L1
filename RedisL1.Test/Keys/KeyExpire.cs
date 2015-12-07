@@ -7,18 +7,9 @@ using System.Threading.Tasks;
 namespace RedisL1.Test
 {
     [TestClass]
-    public class KeyExpire
+    public class KeyExpire : UnitTestBase
     {
-        private CallMonitoringRedisDatabase _redisDb;
-        private RedisL1Database _memDb;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            _redisDb = UnitTestSetup.SetUp();
-            _memDb = new RedisL1Database(_redisDb);
-        }
-
+        
         [TestMethod]
         public async Task KeyExpire_DateTime()
         {
