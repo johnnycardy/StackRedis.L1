@@ -1,6 +1,6 @@
 *.suo
 packages/
-RedisL1/bin/
-RedisL1/obj/
-RedisL1.Test/bin/
-RedisL1.Test/obj/
+StackRedis.L1/bin/
+StackRedis.L1/obj/
+StackRedis.L1.Test/bin/
+StackRedis.L1.Test/obj/

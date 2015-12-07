@@ -16,6 +16,6 @@ If you have multiple servers all talking to Redis, then each server can still us
 If you are already using StackExchange.Redis, then integration into your project is a 2-line change:
 
     var database = connection.GetDatabase(); //Get your Redis IDatabase instance as normal
-    var cachedDatabase = new RedisL1Database(database) //Create the in-memory cached database on top
+    var cachedDatabase = new StackRedis.L1Database(database) //Create the in-memory cached database on top
   
-Since the `RedisL1Database` implements `IDatabase`, it's a simple swap.
+Since the `StackRedis.L1Database` implements `IDatabase`, it's a simple swap.
