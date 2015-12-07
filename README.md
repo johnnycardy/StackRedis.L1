@@ -19,3 +19,7 @@ If you are already using StackExchange.Redis, then integration into your project
     IDatabase l1Database = new StackRedis.L1Database(database) //Create the in-memory cached database on top
   
 Since the `StackRedis.L1Database` implements `IDatabase`, it's a simple swap.
+
+### Project State
+
+It's early days... at the moment, calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet.
