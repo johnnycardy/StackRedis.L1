@@ -16,10 +16,10 @@ If you have multiple clients all talking to Redis, then each one can still use t
 If you are already using StackExchange.Redis, then integration into your project is a 2-line change:
 
     IDatabase database = connection.GetDatabase(); //Get your Redis IDatabase instance as normal
-    IDatabase l1Database = new StackRedis.L1Database(database) //Create the in-memory cached database on top
+    IDatabase l1Database = new StackRedis.L1.RedisL1Database(database) //Create the in-memory cached database on top
   
-Since the `StackRedis.L1Database` implements `IDatabase`, it's a simple swap.
+Since the `RedisL1Database` implements `IDatabase`, it's a simple swap.
 
 ### Project State
 
-It's early days... at the moment, calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet.
+It's early days... at the moment, calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet but won't affect other parts of IDatabase.
