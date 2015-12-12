@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using StackExchange.Redis;
 using StackRedis.L1.MemoryCache;
+using System.Threading.Tasks;
 
 namespace StackRedis.L1.Test
 {
@@ -49,7 +50,8 @@ namespace StackRedis.L1.Test
             var values = _memDb.StringGet(new RedisKey[] { "key1" });
             Assert.AreEqual("value1", (string)values[0]);
 
-            //only key 2 should need to be retrieved this time. We prove by removing key1
+            //only key 2 should need to be retrieved this time. We prove by removing key1 from redis only - not memory
+            _memDb.DBData.Listener.Paused = true;
             _redisDb.KeyDelete("key1");
             _redisDb.StringSet("key2", "value2");
 
@@ -57,6 +59,27 @@ namespace StackRedis.L1.Test
             values = _memDb.StringGet(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual("value1", (string)values[0]);
             Assert.AreEqual("value2", (string)values[1]);
+        }
+
+        [TestMethod]
+        public async Task StringGet_WithExpiry()
+        {
+            //Set in redis with an expiry
+            _redisDb.StringSet("key", "value1", TimeSpan.FromMilliseconds(30));
+
+            //Pull into memory
+            Assert.AreEqual("value1", (string)_memDb.StringGet("key"));
+            Assert.AreEqual(2, _redisDb.Calls);
+
+            //Test that it's set in mem
+            Assert.AreEqual("value1", (string)_memDb.StringGet("key"));
+            Assert.AreEqual(2, _redisDb.Calls);
+
+            await Task.Delay(100);
+
+            //Get it again - should go back to redis, where it's now not set since it's expired
+            Assert.IsFalse(_memDb.StringGet("key").HasValue);
+            Assert.AreEqual(3, _redisDb.Calls);
         }
     }
 }

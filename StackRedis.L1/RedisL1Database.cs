@@ -14,20 +14,22 @@ namespace StackRedis.L1
     public class RedisL1Database : IDatabase
     {
         private IDatabase _redisDb;
-        private TimeSpan? _defaultExpiry;
         private MemoryStrings _memoryStrings;
 
         internal DatabaseInstanceData DBData { get; set; }
 
-        public RedisL1Database(IDatabase redisDb, TimeSpan? defaultExpiry = default(TimeSpan?))
+        /// <summary>
+        /// Constructs a memory-caching layer for Redis IDatabase
+        /// </summary>
+        /// <param name="redisDb">IDatabase instance</param>
+        public RedisL1Database(IDatabase redisDb)
         {
             _redisDb = redisDb;
-            _defaultExpiry = defaultExpiry;
 
             //Register for subscriptions and get the in-memory data store
             DBData = DatabaseRegister.Instance.GetDatabaseInstanceData(this);
             
-            _memoryStrings = new MemoryStrings(defaultExpiry, DBData.MemoryCache);
+            _memoryStrings = new MemoryStrings(DBData.MemoryCache);
         }
 
         public void Flush()
@@ -429,14 +431,16 @@ namespace StackRedis.L1
 
         public bool KeyRename(RedisKey key, RedisKey newKey, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
+            DBData.MemoryCache.RenameKey(key, newKey);
             return _redisDb.KeyRename(key, newKey, when, flags);
         }
 
-        public Task<bool> KeyRenameAsync(RedisKey key, RedisKey newKey, When when = When.Always, CommandFlags flags = CommandFlags.None)
+        public async Task<bool> KeyRenameAsync(RedisKey key, RedisKey newKey, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            return _redisDb.KeyRenameAsync(key, newKey, when, flags);
+            DBData.MemoryCache.RenameKey(key, newKey);
+            return await _redisDb.KeyRenameAsync(key, newKey, when, flags);
         }
-
+        
         public void KeyRestore(RedisKey key, byte[] value, TimeSpan? expiry = default(TimeSpan?), CommandFlags flags = CommandFlags.None)
         {
             _redisDb.KeyRestore(key, value, expiry, flags);
@@ -1181,7 +1185,8 @@ namespace StackRedis.L1
         {
             return _memoryStrings.MultiValueGetFromMemory(keys, retrieveKeys =>
             {
-                return Task.FromResult(_redisDb.StringGet(retrieveKeys, flags));
+                RedisValue[] values = _redisDb.StringGet(retrieveKeys, flags);
+                return Task.FromResult(values);
             }).Result;
         }
         
@@ -1189,6 +1194,7 @@ namespace StackRedis.L1
         {
             return _memoryStrings.MultiValueGetFromMemory(key, () =>
             {
+                System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
                 return Task.FromResult(_redisDb.StringGet(key, flags));
             }).Result;
         }
@@ -1271,20 +1277,28 @@ namespace StackRedis.L1
 
         public long StringLength(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            return _redisDb.StringLength(key, flags);
+            //Try and get the string from memory
+            long length = _memoryStrings.GetStringLength(key);
+            if (length >= 0)
+                return length;
+            else
+                return _redisDb.StringLength(key, flags);
         }
 
         public Task<long> StringLengthAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-
-            return _redisDb.StringLengthAsync(key, flags);
+            long length = _memoryStrings.GetStringLength(key);
+            if (length >= 0)
+                return Task.FromResult(length);
+            else
+                return _redisDb.StringLengthAsync(key, flags);
         }
 
         public bool StringSet(KeyValuePair<RedisKey, RedisValue>[] values, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
             foreach(var kvp in values)
             {
-                DBData.MemoryCache.Add(kvp.Key, kvp.Value, _defaultExpiry, when);
+                DBData.MemoryCache.Add(kvp.Key, kvp.Value, null, when);
             }
             return _redisDb.StringSet(values, when, flags);
         }
@@ -1299,7 +1313,7 @@ namespace StackRedis.L1
         {
             foreach (var kvp in values)
             {
-                DBData.MemoryCache.Add(kvp.Key, kvp.Value, _defaultExpiry, when);
+                DBData.MemoryCache.Add(kvp.Key, kvp.Value, null, when);
             }
             return _redisDb.StringSetAsync(values, when, flags);
         }

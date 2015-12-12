@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 namespace StackRedis.L1.Test
 {
     [TestClass]
-    public class Keyspace_del : UnitTestBase
+    public class Keyspace_expire : UnitTestBase
     {
         [TestMethod]
-        public async Task Keyspace_del_KeyRemoved()
+        public async Task Keyspace_expire_KeyRemoved()
         {
             //Create a key
             _redisDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
 
-            //Delete it in Redis
-            _redisDb.KeyDelete("key1");
+            //Expire it in Redis
+            _redisDb.KeyExpire("key1", TimeSpan.FromMilliseconds(10));
 
-            //Wait 100ms for it to take effect
-            await Task.Delay(100);
+            //Wait for it to take effect
+            await Task.Delay(200);
 
             //Ensure it's gone from the memory db
             Assert.IsFalse(_memDb.KeyExists("key1"));

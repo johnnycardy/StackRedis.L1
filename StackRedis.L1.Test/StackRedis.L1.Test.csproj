@@ -55,15 +55,20 @@
   </Choose>
   <ItemGroup>
     <Compile Include="KeyspaceEvents\Keyspace_del.cs" />
+    <Compile Include="KeyspaceEvents\Keyspace_expire.cs" />
+    <Compile Include="KeyspaceEvents\Keyspace_rename.cs" />
     <Compile Include="Keys\KeyExistsAsync.cs" />
     <Compile Include="Keys\KeyExists.cs" />
     <Compile Include="Keys\KeyExpireAsync.cs" />
     <Compile Include="Keys\KeyExpire.cs" />
     <Compile Include="CallMonitoringRedisDatabase.cs" />
+    <Compile Include="Keys\KeyRenameAsync.cs" />
+    <Compile Include="Keys\KeyRename.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Keys\KeyDelete.cs" />
+    <Compile Include="String\StringLengthAwait.cs" />
     <Compile Include="String\StringLength.cs" />
     <Compile Include="String\StringSet.cs" />
     <Compile Include="String\StringSetAsync.cs" />

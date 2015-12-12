@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="KeyspaceNotifications\DatabaseRegister.cs" />
+    <Compile Include="KeyspaceNotifications\FixedSizeQueue.cs" />
     <Compile Include="KeyspaceNotifications\NotificationListener.cs" />
     <Compile Include="MemoryCache\ObjMemCache.cs" />
     <Compile Include="MemoryCache\Types\MemoryString.cs" />

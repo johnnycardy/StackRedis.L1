@@ -16,6 +16,8 @@ namespace StackRedis.L1.Test
 
             Assert.AreEqual(1, _redisDb.Calls);
 
+            //remove key1 in redis only - not in memory
+            _memDb.DBData.Listener.Paused = true;
             await _redisDb.KeyDeleteAsync("key1");
 
             //value1 should be mem cached
@@ -34,7 +36,8 @@ namespace StackRedis.L1.Test
 
             Assert.AreEqual(1, _redisDb.Calls);
 
-            //remove key1
+            //remove key1 in redis only - not in memory
+            _memDb.DBData.Listener.Paused = true;
             await _redisDb.KeyDeleteAsync("key1");
 
             //key1 should be mem cached

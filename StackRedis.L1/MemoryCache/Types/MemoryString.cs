@@ -9,47 +9,37 @@ namespace StackRedis.L1.MemoryCache.Types
 {
     internal class MemoryStrings
     {
-        private TimeSpan? _defaultExpiry;
         private ObjMemCache _memCache;
         
-        internal MemoryStrings(TimeSpan? defaultExpiry, ObjMemCache memCache)
+        internal MemoryStrings(ObjMemCache memCache)
         {
-            _defaultExpiry = defaultExpiry;
             _memCache = memCache;
         }
 
-        internal async Task<long> StringLengthAsync(string key, Func<Task<long>> retrieval)
+        internal long GetStringLength(string key)
         {
-            //Check if the string is in memory
-            var val = _memCache.Get<RedisValue>(key);
-            if(val.HasValue)
+            if(_memCache.ContainsKey(key))
             {
-                return ((string)val.Value).Length;
-            }
-            else
-            {
-                //Check if we've already cached the length
-                string lenKey = key + ":StackRedis.L1:StringLength";
-                val = _memCache.Get<RedisValue>(lenKey);
-                if(val.HasValue)
+                var value = _memCache.Get<RedisValue>(key);
+                if(value.HasValue)
                 {
-                    return (long)val.Value;
-                }
-                else
-                {
-                    long length = await retrieval();
-                    _memCache.Add(lenKey, length, _defaultExpiry, When.Always);
-                    return length;
+                    RedisValue redisValue = value.Value;
+                    if(redisValue.HasValue)
+                    {
+                        return ((string)redisValue).Length;
+                    }
                 }
             }
-        }
 
+            return -1;
+        }
+        
         internal async Task<RedisValue> MultiValueGetFromMemory(string key, Func<Task<RedisValue>> retrieval)
         {
             return (await MultiValueGetFromMemory(new RedisKey[] { key }, async (keys) =>
             {
                 RedisValue result = await retrieval();
-                return new RedisValue[] { result };
+                return new [] { result };
             })).Single();
         }
         
@@ -82,13 +72,13 @@ namespace StackRedis.L1.MemoryCache.Types
                 if (redisResults != null)
                 {
                     int i = 0;
-                    foreach (RedisValue redisResult in redisResults)
+                    foreach (var redisResult in redisResults)
                     {
                         int originalIndex = nonCachedIndices[i++];
                         result[originalIndex] = redisResult;
 
                         //Cache this key for next time
-                        _memCache.Add(keys[originalIndex], redisResult, _defaultExpiry, When.Always);
+                        _memCache.Add(keys[originalIndex], redisResult, null, When.Always);
                     }
                 }
             }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace StackRedis.L1.Test
 {
@@ -13,7 +14,7 @@ namespace StackRedis.L1.Test
     {
         protected CallMonitoringRedisDatabase _redisDb;
         protected RedisL1Database _memDb;
-
+        
         [TestInitialize]
         public void SetUp()
         {
@@ -31,15 +32,14 @@ namespace StackRedis.L1.Test
             //Construct the in-memory cache
             _memDb = new RedisL1Database(_redisDb);
 
+            _memDb.DBData.Listener.Paused = false;
+
             //Clean everything out
             server.FlushAllDatabases();
             _memDb.Flush();
 
             //Reset the number of calls
             _redisDb.Calls = 0;
-            
-            //Pause keyspace notifications during most tests
-            _memDb.DBData.Listener.Paused = true;
         }
 
     }

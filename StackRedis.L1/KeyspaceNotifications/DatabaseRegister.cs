@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace StackRedis.L1.KeyspaceNotifications
 {
-    internal sealed class DatabaseRegister
+    internal sealed class DatabaseRegister : IDisposable
     {
         internal static DatabaseRegister Instance = new DatabaseRegister();
 
@@ -36,12 +36,20 @@ namespace StackRedis.L1.KeyspaceNotifications
 
             return dbData[dbIdentifier];
         }
+
+        public void Dispose()
+        {
+            foreach(var db in dbData)
+            {
+                db.Value.Dispose();
+            }
+        }
     }
 
     /// <summary>
     /// Holds details for each Redis database.
     /// </summary>
-    internal class DatabaseInstanceData
+    internal class DatabaseInstanceData : IDisposable
     {
         /// <summary>
         /// The notification listener to handle keyspace notifications
@@ -60,6 +68,12 @@ namespace StackRedis.L1.KeyspaceNotifications
 
             //Connect the memory cache to the listener. Its data will be updated when keyspace events occur.
             Listener.HandleKeyspaceEvents(this);
+        }
+
+        public void Dispose()
+        {
+            Listener.Dispose();
+            MemoryCache.Dispose();
         }
     }
 }
