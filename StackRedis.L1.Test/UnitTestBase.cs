@@ -31,15 +31,19 @@ namespace StackRedis.L1.Test
 
             //Construct the in-memory cache
             _memDb = new RedisL1Database(_redisDb);
-
-            _memDb.DBData.Listener.Paused = false;
-
+            
             //Clean everything out
             server.FlushAllDatabases();
             _memDb.Flush();
 
             //Reset the number of calls
             _redisDb.Calls = 0;
+        }
+
+        [TestCleanup]
+        public void TearDown()
+        {
+            _memDb.Dispose();
         }
 
     }

@@ -22,6 +22,21 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
+        public async Task StringGet_StringChangedInRedis()
+        {
+            //Set it and retrieve it into memory
+            _redisDb.StringSet("key1", "value1");
+            Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
+
+            //Now change it in redis
+            _redisDb.StringSet("key1", "value2");
+
+            //Wait for it to propagate and re-retrieve
+            await Task.Delay(50);
+            Assert.AreEqual("value2", (string)_memDb.StringGet("key1"));
+        }
+
+        [TestMethod]
         public void StringGet_Simple_Multi_BothValuesCached()
         {
             _redisDb.StringSet("key1", "value1");

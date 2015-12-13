@@ -18,11 +18,20 @@ namespace StackRedis.L1.KeyspaceNotifications
         private DatabaseRegister()
         { }
 
+        internal void RemoveInstanceData(IDatabase redisDb)
+        {
+            string dbIdentifier = string.Format("{0}:db={1}", redisDb.Multiplexer.Configuration, redisDb.Database);
+            lock (_lockObj)
+            {
+                if (dbData.ContainsKey(dbIdentifier))
+                {
+                    dbData.Remove(dbIdentifier);
+                }
+            }
+        }
+
         internal DatabaseInstanceData GetDatabaseInstanceData(IDatabase redisDb)
         {
-            //create a unique string for this db
-            var endpoint = redisDb.IdentifyEndpoint();
-            
             string dbIdentifier = string.Format("{0}:db={1}", redisDb.Multiplexer.Configuration, redisDb.Database);
 
             //Check if this db is already registered, and register it for notifications if necessary
@@ -43,6 +52,8 @@ namespace StackRedis.L1.KeyspaceNotifications
             {
                 db.Value.Dispose();
             }
+
+            dbData = new Dictionary<string, DatabaseInstanceData>();
         }
     }
 

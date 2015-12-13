@@ -34,11 +34,6 @@ namespace StackRedis.L1.KeyspaceNotifications
         public void Dispose()
         {
             _subscriber.Unsubscribe(_keyspace);
-
-            foreach(var db in _databases)
-            {
-                db.Dispose();
-            }
         }
 
         internal void HandleKeyspaceEvents(DatabaseInstanceData dbData)

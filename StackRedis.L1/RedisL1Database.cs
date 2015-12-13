@@ -11,7 +11,7 @@ using StackRedis.L1.KeyspaceNotifications;
 
 namespace StackRedis.L1
 {
-    public class RedisL1Database : IDatabase
+    public class RedisL1Database : IDatabase, IDisposable
     {
         private IDatabase _redisDb;
         private MemoryStrings _memoryStrings;
@@ -1362,6 +1362,12 @@ namespace StackRedis.L1
         public void WaitAll(params Task[] tasks)
         {
             _redisDb.WaitAll(tasks);
+        }
+
+        public void Dispose()
+        {
+            DatabaseRegister.Instance.RemoveInstanceData(_redisDb);
+            DBData.Dispose();
         }
     }
 }
