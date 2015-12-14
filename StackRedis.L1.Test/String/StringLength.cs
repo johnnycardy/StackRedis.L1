@@ -30,6 +30,8 @@ namespace StackRedis.L1.Test
             Assert.AreEqual(5, (int)_memDb.StringLength("key"));
             Assert.AreEqual(1, _redisDb.Calls);
 
+            await Task.Delay(1200);
+
             //Change the string in redis
             _redisDb.StringSet("key", "longer value");
 
