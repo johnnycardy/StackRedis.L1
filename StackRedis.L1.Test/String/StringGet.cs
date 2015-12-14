@@ -28,6 +28,8 @@ namespace StackRedis.L1.Test
             _redisDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
 
+            await Task.Delay(1200);
+
             //Now change it in redis
             _redisDb.StringSet("key1", "value2");
 

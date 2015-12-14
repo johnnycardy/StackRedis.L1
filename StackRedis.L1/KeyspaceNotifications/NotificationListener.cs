@@ -18,7 +18,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         
         internal bool Paused { get; set; }
 
-        internal NotificationListener(ConnectionMultiplexer connection)
+        internal NotificationListener(ConnectionMultiplexer connection, Func<string, bool> recentKeyCheck)
         {
             _subscriber = connection.GetSubscriber();
             _subscriber.Subscribe(_keyspace + "*", (channel, value) =>
@@ -26,7 +26,8 @@ namespace StackRedis.L1.KeyspaceNotifications
                 if (!Paused)
                 {
                     string key = ((string)channel).Replace(_keyspace, "");
-                    HandleKeyspaceEvent(new KeyValuePair<string, string>(key, value));
+
+                    HandleKeyspaceEvent(new KeyValuePair<string, string>(key, value), recentKeyCheck(key));
                 }
             });
         }
@@ -41,11 +42,11 @@ namespace StackRedis.L1.KeyspaceNotifications
             _databases.Add(dbData);
         }
 
-        private void HandleKeyspaceEvent(KeyValuePair<string, string> kvp)
+        private void HandleKeyspaceEvent(KeyValuePair<string, string> kvp, bool isRecentlyAdded)
         {
             foreach(DatabaseInstanceData dbData in _databases)
             {
-                HandleKeyspaceEvent(dbData, kvp);
+                HandleKeyspaceEvent(dbData, kvp, isRecentlyAdded);
             }
 
             //Store the event
@@ -55,7 +56,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         /// <summary>
         /// Reads the key/value and updates the database with the relevant value
         /// </summary>
-        private void HandleKeyspaceEvent(DatabaseInstanceData dbData, KeyValuePair<string,string> kvp)
+        private void HandleKeyspaceEvent(DatabaseInstanceData dbData, KeyValuePair<string,string> kvp, bool isRecentlyAddedOnThisServer)
         {
             System.Diagnostics.Debug.WriteLine("Keyspace event. Key=" + kvp.Key + ", Value=" + kvp.Value);
 
@@ -76,6 +77,20 @@ namespace StackRedis.L1.KeyspaceNotifications
             {
                 dbData.MemoryCache.Remove(new[] { kvp.Key });
                 System.Diagnostics.Debug.WriteLine("Key expired and removed:" + kvp.Key);
+            }
+            else if(kvp.Value == "set")
+            {
+                if (isRecentlyAddedOnThisServer)
+                {
+                    //todo: now there has been a value set on another server and this server, within a very close timespan.
+                    //1 - the notification may actually be from this server - not another. We don't know.
+                    //2 - if a value is set on another server, we may or may not have an out of date value in memory. Again, we don't know.
+                }
+                else
+                {
+                    //A key has been set. If it exists in memory, it is probably now outdated.
+                    dbData.MemoryCache.Remove(new[] { kvp.Key });
+                }
             }
         }
     }

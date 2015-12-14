@@ -74,8 +74,9 @@ namespace StackRedis.L1.KeyspaceNotifications
 
         internal DatabaseInstanceData(IDatabase redisDb)
         {
-            Listener = new NotificationListener(redisDb.Multiplexer);
             MemoryCache = new ObjMemCache();
+
+            Listener = new NotificationListener(redisDb.Multiplexer, key => MemoryCache.IsRecentKey(key));
 
             //Connect the memory cache to the listener. Its data will be updated when keyspace events occur.
             Listener.HandleKeyspaceEvents(this);
