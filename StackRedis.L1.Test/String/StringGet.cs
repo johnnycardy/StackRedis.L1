@@ -68,7 +68,7 @@ namespace StackRedis.L1.Test
             Assert.AreEqual("value1", (string)values[0]);
 
             //only key 2 should need to be retrieved this time. We prove by removing key1 from redis only - not memory
-            _memDb.DBData.Listener.Paused = true;
+            _memDb.PauseKeyspaceNotifications(true);
             _redisDb.KeyDelete("key1");
             _redisDb.StringSet("key2", "value2");
 

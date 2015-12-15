@@ -34,7 +34,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         
         public void Dispose()
         {
-            _subscriber.Unsubscribe(_keyspace);
+            _subscriber.Unsubscribe(_keyspace + "*");
         }
 
         internal void HandleKeyspaceEvents(DatabaseInstanceData dbData)

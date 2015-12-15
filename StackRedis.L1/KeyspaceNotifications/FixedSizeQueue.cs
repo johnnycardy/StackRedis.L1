@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace StackRedis.L1.KeyspaceNotifications
 {
-    public class FixedSizedQueue<T> : ConcurrentQueue<T>
+    internal class FixedSizedQueue<T> : ConcurrentQueue<T>
     {
         private readonly object syncObject = new object();
 

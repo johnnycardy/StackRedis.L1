@@ -31,7 +31,7 @@ namespace StackRedis.L1.MemoryCache.Types
                 }
             }
 
-            return -1;
+            return 0;
         }
         
         internal async Task<RedisValue> MultiValueGetFromMemory(string key, Func<Task<RedisValue>> retrieval)

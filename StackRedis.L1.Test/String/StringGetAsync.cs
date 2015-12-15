@@ -32,7 +32,7 @@ namespace StackRedis.L1.Test
             Assert.AreEqual(3, _redisDb.Calls);
 
             //Remove keys from redis only, not from memory
-            _memDb.DBData.Listener.Paused = true;
+            _memDb.PauseKeyspaceNotifications(true);
             _redisDb.KeyDelete(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual(4, _redisDb.Calls);
 
@@ -52,7 +52,7 @@ namespace StackRedis.L1.Test
             Assert.AreEqual("value1", (string)values[0]);
 
             //only key 2 should need to be retrieved this time. We prove by removing key1 from redis and not memory
-            _memDb.DBData.Listener.Paused = true;
+            _memDb.PauseKeyspaceNotifications(true);
             _redisDb.KeyDelete("key1");
             await _redisDb.StringSetAsync("key2", "value2");
 

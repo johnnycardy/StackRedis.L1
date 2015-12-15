@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackRedis.L1.MemoryCache.Types;
 
 namespace StackRedis.L1.KeyspaceNotifications
 {
@@ -18,9 +19,8 @@ namespace StackRedis.L1.KeyspaceNotifications
         private DatabaseRegister()
         { }
 
-        internal void RemoveInstanceData(IDatabase redisDb)
+        internal void RemoveInstanceData(string dbIdentifier)
         {
-            string dbIdentifier = string.Format("{0}:db={1}", redisDb.Multiplexer.Configuration, redisDb.Database);
             lock (_lockObj)
             {
                 if (dbData.ContainsKey(dbIdentifier))
@@ -30,10 +30,8 @@ namespace StackRedis.L1.KeyspaceNotifications
             }
         }
 
-        internal DatabaseInstanceData GetDatabaseInstanceData(IDatabase redisDb)
+        internal DatabaseInstanceData GetDatabaseInstanceData(string dbIdentifier, IDatabase redisDb)
         {
-            string dbIdentifier = string.Format("{0}:db={1}", redisDb.Multiplexer.Configuration, redisDb.Database);
-
             //Check if this db is already registered, and register it for notifications if necessary
             lock (_lockObj)
             {
@@ -72,16 +70,23 @@ namespace StackRedis.L1.KeyspaceNotifications
         /// </summary>
         public ObjMemCache MemoryCache { get; private set; }
 
+        internal MemoryStrings MemoryStrings { get; private set; }
+
         internal DatabaseInstanceData(IDatabase redisDb)
         {
             MemoryCache = new ObjMemCache();
+            MemoryStrings = new MemoryStrings(MemoryCache);
 
-            Listener = new NotificationListener(redisDb.Multiplexer, key => MemoryCache.IsRecentKey(key));
+            //If we have access to a redis instance, then listen to it for notifications
+            if (redisDb != null)
+            {
+                Listener = new NotificationListener(redisDb.Multiplexer, key => MemoryCache.IsRecentKey(key));
 
-            //Connect the memory cache to the listener. Its data will be updated when keyspace events occur.
-            Listener.HandleKeyspaceEvents(this);
+                //Connect the memory cache to the listener. Its data will be updated when keyspace events occur.
+                Listener.HandleKeyspaceEvents(this);
+            }
         }
-
+        
         public void Dispose()
         {
             Listener.Dispose();

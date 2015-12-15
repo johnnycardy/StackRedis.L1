@@ -87,7 +87,7 @@ namespace StackRedis.L1.MemoryCache
             return new ValOrRefNullable<T>();
         }
 
-        public void Expire(string key, DateTime? expiry)
+        public bool Expire(string key, DateTime? expiry)
         {
             TimeSpan? diff = null;
 
@@ -96,10 +96,10 @@ namespace StackRedis.L1.MemoryCache
                 diff = expiry.Value.Subtract(DateTime.UtcNow);
             }
 
-            Expire(key, diff);
+            return Expire(key, diff);
         }
 
-        public void Expire(string key, TimeSpan? expiry)
+        public bool Expire(string key, TimeSpan? expiry)
         {
             var o = Get<object>(key);
             if(o.HasValue)
@@ -113,14 +113,20 @@ namespace StackRedis.L1.MemoryCache
                 {
                     Remove(new[] { key });
                 }
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-        public void RenameKey(string keyFrom, string keyTo)
+        public bool RenameKey(string keyFrom, string keyTo)
         {
             lock (_lockObj)
             {
-                if (_cache.Contains(keyFrom))
+                if (_cache.Contains(keyFrom) && keyFrom != keyTo)
                 {
                     System.Diagnostics.Debug.WriteLine("RenameKey: from " + keyFrom + " to " + keyTo);
 
@@ -137,13 +143,18 @@ namespace StackRedis.L1.MemoryCache
                         ttl = _ttls[keyFrom].Subtract(DateTime.UtcNow);
                     }
 
-                    Add(keyTo, value, ttl, When.Always);   
+                    Add(keyTo, value, ttl, When.Always);
+
+                    return true;  
                 }
+
+                return false;
             }
         }
 
-        public void Remove(string[] keys)
+        public long Remove(string[] keys)
         {
+            long result = 0;
             lock (_lockObj)
             {
                 foreach (string key in keys)
@@ -160,9 +171,12 @@ namespace StackRedis.L1.MemoryCache
                         {
                             _ttls.Remove(key);
                         }
+
+                        result++;
                     }
                 }
             }
+            return result;
         }
 
         /// <summary>

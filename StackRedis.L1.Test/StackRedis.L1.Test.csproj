@@ -64,6 +64,7 @@
     <Compile Include="CallMonitoringRedisDatabase.cs" />
     <Compile Include="Keys\KeyRenameAsync.cs" />
     <Compile Include="Keys\KeyRename.cs" />
+    <Compile Include="NoRedis\NoRedisTests.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

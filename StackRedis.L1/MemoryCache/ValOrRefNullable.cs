@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace StackRedis.L1.MemoryCache
 {
-    public class ValOrRefNullable<T>
+    internal class ValOrRefNullable<T>
     {
         public bool HasValue { get; private set; }
         public T Value { get; private set; }
