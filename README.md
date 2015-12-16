@@ -3,6 +3,8 @@ In-Memory "L1" cache for the .NET StackExchange.Redis library.
 
 This library implements the `StackExchange.Redis.IDatabase` interface to provide an in-memory cache layer between your .NET code and Redis.
 
+Additionally, it can be used as a purely in-memory cache, without any Redis instance. This is useful for simulating redis use, for example, in test cases.
+
 ### Why?
 
 Network latency is your primary bottleneck when talking to Redis. Usually this is solved via the use of in-memory caching on the application server; this project is an attempt to generalise that. Any data it sees is stored in memory using the .NET MemoryCache, and later requests for that data are returned from MemoryCache if possible.
