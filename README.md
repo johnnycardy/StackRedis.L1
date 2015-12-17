@@ -1,17 +1,17 @@
 # StackRedis.L1
 In-Memory "L1" cache for the .NET StackExchange.Redis library.
 
-This library implements the `StackExchange.Redis.IDatabase` interface to provide an in-memory cache layer between your .NET code and Redis.
+This library implements the `StackExchange.Redis.IDatabase` interface to provide an in-memory cache layer between your .NET application and Redis.
 
-Additionally, it can be used as a purely in-memory cache, without any Redis instance. This is useful for simulating redis use, for example, in test cases.
+Additionally, it can be used as a purely in-memory cache, without any Redis instance. This is useful for simulating redis use, in test cases, for example.
 
 ### Why?
 
-Network latency is your primary bottleneck when talking to Redis. Usually this is solved via the use of in-memory caching on the application server; this project is an attempt to generalise that. Any data it sees is stored in memory using the .NET MemoryCache, and later requests for that data are returned from MemoryCache if possible.
+Network latency is your primary bottleneck when talking to Redis. Usually this is solved via the use of in-memory caching on the application server; this project is an attempt to generalise that. Any data sent to Redis is intercepted and stored in memory using the .NET MemoryCache, and later requests for that data are returned from MemoryCache if possible.
 
 ### What about multiple clients?
 
-If you have multiple clients all talking to Redis, then each one can still use this cache layer. Data is kept up-to-date in the background by using [Redis keyspace notifications](http://redis.io/topics/notifications).
+If you have multiple clients all talking to Redis, then each one can still use this cache layer without the risk of stale data. This is achieved by invalidating data appropriately in the background by using [Redis keyspace notifications](http://redis.io/topics/notifications).
 
 ### Usage
 
@@ -24,4 +24,4 @@ Since the `RedisL1Database` implements `IDatabase`, it's a simple swap.
 
 ### Project State
 
-It's early days... at the moment, calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet but won't affect other parts of IDatabase.
+It's early days... at the moment, most calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet but won't affect other parts of IDatabase.
