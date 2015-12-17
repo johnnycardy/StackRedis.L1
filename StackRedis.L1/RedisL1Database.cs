@@ -17,7 +17,7 @@ namespace StackRedis.L1
         private DatabaseInstanceData _dbData;
 
         private string _uniqueId;
-
+        
         /// <summary>
         /// Constructs a memory-caching layer for Redis IDatabase
         /// </summary>
@@ -442,14 +442,11 @@ namespace StackRedis.L1
             if (_dbData.MemoryCache.ContainsKey(key))
                 return true;
 
-            if (_redisDb != null)
-            {
-                //We need to check redis since we don't know what we *don't* have
-                return _redisDb.KeyExists(key, flags);
-            }
-
-            //There's no redis so we know assume the key doesn't exist in memory
-            return false;
+            if (_redisDb == null)
+                return false; //There's no redis so we know the key doesn't exist in memory
+            
+            //We need to check redis since we don't know what we *don't* have
+            return _redisDb.KeyExists(key, flags);
         }
 
         public async Task<bool> KeyExistsAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
@@ -1792,7 +1789,7 @@ namespace StackRedis.L1
 
         public RedisValue[] StringGet(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryStrings.MultiValueGetFromMemory(keys, retrieveKeys =>
+            return _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys =>
             {
                 if (_redisDb == null)
                 {
@@ -1807,7 +1804,7 @@ namespace StackRedis.L1
         
         public RedisValue StringGet(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryStrings.MultiValueGetFromMemory(key, () =>
+            return _dbData.MemoryStrings.GetFromMemory(key, () =>
             {
                 System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
 
@@ -1824,7 +1821,7 @@ namespace StackRedis.L1
 
         public async Task<RedisValue[]> StringGetAsync(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
-            return await _dbData.MemoryStrings.MultiValueGetFromMemory(keys, retrieveKeys =>
+            return await _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys =>
             {
                 if (_redisDb == null)
                 {
@@ -1839,7 +1836,7 @@ namespace StackRedis.L1
 
         public async Task<RedisValue> StringGetAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            return await _dbData.MemoryStrings.MultiValueGetFromMemory(key, () =>
+            return await _dbData.MemoryStrings.GetFromMemory(key, () =>
             {
                 if (_redisDb == null)
                 {
@@ -1886,34 +1883,84 @@ namespace StackRedis.L1
 
         public RedisValue StringGetSet(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            bool hasSetInRedis = false;
 
-            return _redisDb.StringGetSet(key, value, flags);
+            RedisValue result = _dbData.MemoryStrings.GetFromMemory(key, () =>
+            {
+                if (_redisDb == null)
+                    return Task.FromResult(new RedisValue());
+                
+                hasSetInRedis = true;
+                return Task.FromResult(_redisDb.StringGetSet(key, value, flags));
+            }).Result;
+
+            //Set it in memory
+            _dbData.MemoryCache.Add(key, value, null, When.Always);
+
+            //Set it in redis if necessary
+            if(!hasSetInRedis && _redisDb != null)
+            {
+                _redisDb.StringSet(key, value, null, When.Always, flags);
+            }
+
+            return result;
         }
 
-        public Task<RedisValue> StringGetSetAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
+        public async Task<RedisValue> StringGetSetAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            bool hasSetInRedis = false;
+            RedisValue result = await _dbData.MemoryStrings.GetFromMemory(key, () =>
+            {
+                if (_redisDb == null)
+                    return Task.FromResult(new RedisValue());
 
-            return _redisDb.StringGetSetAsync(key, value, flags);
+                hasSetInRedis = true;
+                return _redisDb.StringGetAsync(key, flags);
+            });
+
+            //Set it in memory
+            _dbData.MemoryCache.Add(key, value, null, When.Always);
+
+            //Set it in redis if necessary
+            if(!hasSetInRedis && _redisDb != null)
+                await _redisDb.StringGetSetAsync(key, value, flags);
+
+            return result;
         }
 
         public RedisValueWithExpiry StringGetWithExpiry(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            return _dbData.MemoryStrings.GetFromMemoryWithExpiry(key, () =>
+            {
+                System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
 
-            return _redisDb.StringGetWithExpiry(key, flags);
+                if (_redisDb == null)
+                {
+                    return Task.FromResult(new RedisValueWithExpiry());
+                }
+                else
+                {
+                    return Task.FromResult(_redisDb.StringGetWithExpiry(key, flags));
+                }
+            }).Result;
+            
         }
 
         public Task<RedisValueWithExpiry> StringGetWithExpiryAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            return _dbData.MemoryStrings.GetFromMemoryWithExpiry(key, () =>
+            {
+                System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
 
-            return _redisDb.StringGetWithExpiryAsync(key, flags);
+                if (_redisDb == null)
+                {
+                    return Task.FromResult(new RedisValueWithExpiry());
+                }
+                else
+                {
+                    return _redisDb.StringGetWithExpiryAsync(key, flags);
+                }
+            });
         }
 
         public double StringIncrement(RedisKey key, double value, CommandFlags flags = CommandFlags.None)

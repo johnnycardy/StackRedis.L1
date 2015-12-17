@@ -14,10 +14,15 @@ namespace StackRedis.L1.Test
         {
             await _memDb.StringSetAsync("key1", "value1");
             Assert.AreEqual(1, _redisDb.Calls);
-            
+
+            //remove key1 in Redis
+            _memDb.PauseKeyspaceNotifications();
+            await _redisDb.KeyDeleteAsync("key1");
+            Assert.AreEqual(2, _redisDb.Calls);
+
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)(await _memDb.StringGetAsync("key1")));
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(2, _redisDb.Calls);
         }
 
 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,17 +34,55 @@ namespace StackRedis.L1.MemoryCache.Types
 
             return 0;
         }
-        
-        internal async Task<RedisValue> MultiValueGetFromMemory(string key, Func<Task<RedisValue>> retrieval)
+
+        internal RedisValueWithExpiry CreateRedisValueWithExpiry(RedisValue value, TimeSpan? expiry)
         {
-            return (await MultiValueGetFromMemory(new RedisKey[] { key }, async (keys) =>
+            var result = new RedisValueWithExpiry();
+            
+            //Box into object so that we can set properties on the same instance
+            object oResult = result;
+
+            result.GetType().GetField("expiry", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(oResult, expiry);
+            result.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(oResult, value);
+
+            //Unbox back to struct
+            result = (RedisValueWithExpiry)oResult;
+            
+            return result;
+
+        }
+
+        internal async Task<RedisValueWithExpiry> GetFromMemoryWithExpiry(string key, Func<Task<RedisValueWithExpiry>> retrieval)
+        {
+            ValOrRefNullable<RedisValue> cachedValue = _memCache.Get<RedisValue>(key);
+            if (cachedValue.HasValue)
+            {
+                //If we know the expiry, then a trip to redis isn't necessary.
+                var expiry = _memCache.GetExpiry(key);
+                if (expiry.HasValue)
+                {
+                    return CreateRedisValueWithExpiry(cachedValue.Value, expiry.Value);
+                }
+            }
+            
+            RedisValueWithExpiry result = await retrieval();
+
+            //Cache the value and expiry
+            _memCache.Add(key, result.Value, result.Expiry, When.Always);
+
+            return result;
+        }
+        
+        internal async Task<RedisValue> GetFromMemory(string key, Func<Task<RedisValue>> retrieval)
+        {
+            return (await GetFromMemoryMulti(new RedisKey[] { key }, async (keys) =>
             {
                 RedisValue result = await retrieval();
                 return new [] { result };
             })).Single();
         }
         
-        internal async Task<RedisValue[]> MultiValueGetFromMemory(RedisKey[] keys, Func<RedisKey[], Task<RedisValue[]>> retrieval)
+        internal async Task<RedisValue[]> GetFromMemoryMulti(RedisKey[] keys, Func<RedisKey[], Task<RedisValue[]>> retrieval)
         {
             if (!keys.Any())
                 return new RedisValue[0];

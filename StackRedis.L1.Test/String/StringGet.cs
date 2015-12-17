@@ -82,20 +82,20 @@ namespace StackRedis.L1.Test
         public async Task StringGet_WithExpiry()
         {
             //Set in redis with an expiry
-            _redisDb.StringSet("key", "value1", TimeSpan.FromMilliseconds(30));
+            _redisDb.StringSet("key_exp", "value1", TimeSpan.FromMilliseconds(30));
 
             //Pull into memory
-            Assert.AreEqual("value1", (string)_memDb.StringGet("key"));
+            Assert.AreEqual("value1", (string)_memDb.StringGet("key_exp"));
             Assert.AreEqual(2, _redisDb.Calls);
 
             //Test that it's set in mem
-            Assert.AreEqual("value1", (string)_memDb.StringGet("key"));
+            Assert.AreEqual("value1", (string)_memDb.StringGet("key_exp"));
             Assert.AreEqual(2, _redisDb.Calls);
 
             await Task.Delay(100);
 
             //Get it again - should go back to redis, where it's now not set since it's expired
-            Assert.IsFalse(_memDb.StringGet("key").HasValue);
+            Assert.IsFalse(_memDb.StringGet("key_exp").HasValue);
             Assert.AreEqual(3, _redisDb.Calls);
         }
     }
