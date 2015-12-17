@@ -20,7 +20,7 @@ namespace StackRedis.L1.MemoryCache
 
         //When you add an item to MemoryCache with a specific TTL, you can't retrieve it again.
         //So, we store them separately.
-        private Dictionary<string, DateTime> _ttls = new Dictionary<string, DateTime>();
+        private Dictionary<string, DateTimeOffset?> _ttls = new Dictionary<string, DateTimeOffset?>();
         
         internal ObjMemCache()
         {
@@ -60,12 +60,12 @@ namespace StackRedis.L1.MemoryCache
 
                 if (expiry.HasValue && expiry.Value != default(TimeSpan))
                 {
-                    DateTime expiryDateTime = DateTime.UtcNow.Add(expiry.Value);
-
                     //Store the ttl separately
-                    _ttls[key] = expiryDateTime;
-
-                    policy.AbsoluteExpiration = new DateTimeOffset(expiryDateTime);
+                    _ttls[key] = policy.AbsoluteExpiration = DateTime.UtcNow.Add(expiry.Value);
+                }
+                else
+                {
+                    _ttls[key] = null;
                 }
 
                 System.Diagnostics.Debug.WriteLine("Adding key to mem cache: " + key);
@@ -87,11 +87,34 @@ namespace StackRedis.L1.MemoryCache
             return new ValOrRefNullable<T>();
         }
 
-        public bool Expire(string key, DateTime? expiry)
+        public ValOrRefNullable<TimeSpan?> GetExpiry(string key)
+        {
+            if(_ttls.ContainsKey(key))
+            {
+                //There is a TTL stored. Is it null?
+                if (_ttls[key].HasValue)
+                {
+                    //Return it as a timespan
+                    return new ValOrRefNullable<TimeSpan?>(_ttls[key].Value.Subtract(DateTime.UtcNow));
+                }
+                else
+                {
+                    //There is a null TTL stored (ie, we know it's a non-expiring key)
+                    return new ValOrRefNullable<TimeSpan?>(null);
+                }
+            }
+            else
+            {
+                //There is no TTL stored - we would have to go to redis to get it.
+                return new ValOrRefNullable<TimeSpan?>();
+            }
+        }
+
+        public bool Expire(string key, DateTimeOffset? expiry)
         {
             TimeSpan? diff = null;
 
-            if(expiry.HasValue && expiry != default(DateTime))
+            if(expiry.HasValue && expiry != default(DateTimeOffset))
             {
                 diff = expiry.Value.Subtract(DateTime.UtcNow);
             }
@@ -140,9 +163,15 @@ namespace StackRedis.L1.MemoryCache
                     TimeSpan? ttl = null;
                     if(_ttls.ContainsKey(keyFrom))
                     {
-                        ttl = _ttls[keyFrom].Subtract(DateTime.UtcNow);
-                    }
+                        if (_ttls[keyFrom].HasValue)
+                        {
+                            ttl = _ttls[keyFrom].Value.Subtract(DateTime.UtcNow);
+                        }
 
+                        //Remove the existing TTL
+                        _ttls.Remove(keyFrom);
+                    }
+                    
                     Add(keyTo, value, ttl, When.Always);
 
                     return true;  
