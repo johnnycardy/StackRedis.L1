@@ -2065,17 +2065,27 @@ namespace StackRedis.L1
         public bool StringSetBit(RedisKey key, long offset, bool bit, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
+            {
                 throw new NotImplementedException();
-
-            return _redisDb.StringSetBit(key, offset, bit, flags);
+            }
+            else
+            {
+                _dbData.MemoryCache.Remove(new[] { (string)key });
+                return _redisDb.StringSetBit(key, offset, bit, flags);
+            }
         }
 
         public Task<bool> StringSetBitAsync(RedisKey key, long offset, bool bit, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
+            {
                 throw new NotImplementedException();
-
-            return _redisDb.StringSetBitAsync(key, offset, bit, flags);
+            }
+            else
+            {
+                _dbData.MemoryCache.Remove(new[] { (string)key });
+                return _redisDb.StringSetBitAsync(key, offset, bit, flags);
+            }
         }
 
         public RedisValue StringSetRange(RedisKey key, long offset, RedisValue value, CommandFlags flags = CommandFlags.None)

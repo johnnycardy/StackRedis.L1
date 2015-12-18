@@ -36,6 +36,16 @@ namespace StackRedis.L1.MemoryCache
         {
             return _cache.Contains(key);
         }
+
+        public void Update(string key, object o)
+        {
+            if(ContainsKey(key))
+            {
+                var expiry = GetExpiry(key);
+                TimeSpan? expiryTimespan = expiry.HasValue ? expiry.Value : null;
+                Add(key, o, expiryTimespan, When.Always);
+            }
+        }
         
         public void Add(string key, object o, TimeSpan? expiry, When when)
         {

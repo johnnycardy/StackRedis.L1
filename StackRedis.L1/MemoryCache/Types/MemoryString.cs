@@ -1,5 +1,6 @@
 ﻿using StackExchange.Redis;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -123,6 +124,44 @@ namespace StackRedis.L1.MemoryCache.Types
             }
 
             return result;
+        }
+
+        internal bool SetStringBit(RedisKey key, long offset, bool bit)
+        {
+            var existingString = _memCache.Get<RedisValue>(key);
+            if(existingString.HasValue)
+            {
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(existingString.Value);
+                BitArray bitArray = new BitArray(bytes);
+                if(bitArray.Length > offset)
+                {
+                    bool existingValue = bitArray[(int)offset];
+
+                    bitArray[(int)offset] = bit;
+
+                    //Copy back to byte array
+                    bitArray.CopyTo(bytes, 0);
+
+                    //Re-save as a string
+                    string str = Encoding.UTF8.GetString(bytes);
+                    _memCache.Update(key, str);
+
+                    //Return the existing value
+                    return existingValue;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                //Create an empty string
+                _memCache.Add(key, "", null, When.NotExists);
+                
+                //The existing value is 0
+                return false;
+            }
         }
     }
 }

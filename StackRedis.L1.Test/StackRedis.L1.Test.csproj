@@ -79,6 +79,7 @@
     <Compile Include="String\StringSet.cs" />
     <Compile Include="String\StringSetAsync.cs" />
     <Compile Include="String\StringGetWithExpiry.cs" />
+    <Compile Include="String\StringSetBit.cs" />
     <Compile Include="UnitTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
