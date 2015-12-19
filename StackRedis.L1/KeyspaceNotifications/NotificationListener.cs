@@ -92,7 +92,7 @@ namespace StackRedis.L1.KeyspaceNotifications
                     dbData.MemoryCache.Remove(new[] { kvp.Key });
                 }
             }
-            else if(kvp.Value == "setbit")
+            else if(kvp.Value == "setbit" || kvp.Value == "setrange")
             {
                 //Memory cache does not currently calculate "setbit" results. So we always need to remove the key.
                 dbData.MemoryCache.Remove(new[] { kvp.Key });

@@ -2064,32 +2064,36 @@ namespace StackRedis.L1
 
         public bool StringSetBit(RedisKey key, long offset, bool bit, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
             {
-                throw new NotImplementedException();
+                throw new NotImplementedException("StringSetBit not yet supported as an in-memory operation.");
             }
             else
             {
-                _dbData.MemoryCache.Remove(new[] { (string)key });
                 return _redisDb.StringSetBit(key, offset, bit, flags);
             }
         }
 
         public Task<bool> StringSetBitAsync(RedisKey key, long offset, bool bit, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
             {
-                throw new NotImplementedException();
+                throw new NotImplementedException("StringSetBit not yet supported as an in-memory operation.");
             }
             else
             {
-                _dbData.MemoryCache.Remove(new[] { (string)key });
                 return _redisDb.StringSetBitAsync(key, offset, bit, flags);
             }
         }
 
         public RedisValue StringSetRange(RedisKey key, long offset, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -2098,6 +2102,8 @@ namespace StackRedis.L1
 
         public Task<RedisValue> StringSetRangeAsync(RedisKey key, long offset, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
