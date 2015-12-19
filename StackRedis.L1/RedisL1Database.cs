@@ -521,34 +521,46 @@ namespace StackRedis.L1
 
         public void KeyMigrate(RedisKey key, EndPoint toServer, int toDatabase = 0, int timeoutMilliseconds = 0, MigrateOptions migrateOptions = MigrateOptions.None, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
-
-            _redisDb.KeyMigrate(key, toServer, toDatabase, timeoutMilliseconds, migrateOptions, flags);
+            if (_redisDb != null)
+            {
+                _redisDb.KeyMigrate(key, toServer, toDatabase, timeoutMilliseconds, migrateOptions, flags);
+            }
         }
 
         public Task KeyMigrateAsync(RedisKey key, EndPoint toServer, int toDatabase = 0, int timeoutMilliseconds = 0, MigrateOptions migrateOptions = MigrateOptions.None, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
+            {
+                return Task.FromResult(0);
+            }
+            else
+            { 
+                return _redisDb.KeyMigrateAsync(key, toServer, toDatabase, timeoutMilliseconds, migrateOptions, flags);
+            }
 
-            return _redisDb.KeyMigrateAsync(key, toServer, toDatabase, timeoutMilliseconds, migrateOptions, flags);
         }
 
         public bool KeyMove(RedisKey key, int database, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.KeyMove(key, database, flags);
+            {
+                return true;
+            }
+            { 
+                return _redisDb.KeyMove(key, database, flags);
+            }
         }
 
         public Task<bool> KeyMoveAsync(RedisKey key, int database, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.KeyMoveAsync(key, database, flags);
+            {
+                return Task.FromResult(true);
+            }
+            else
+            {
+                return _redisDb.KeyMoveAsync(key, database, flags);
+            }
         }
 
         public bool KeyPersist(RedisKey key, CommandFlags flags = CommandFlags.None)
@@ -2113,33 +2125,51 @@ namespace StackRedis.L1
         public bool TryWait(Task task)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.TryWait(task);
+            {
+                //todo - what timeout should be used?
+                return Task.WaitAll(new[] { task }, 1000);
+            }
+            else
+            {
+                return _redisDb.TryWait(task);
+            }
         }
 
         public void Wait(Task task)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
-
-            _redisDb.Wait(task);
+            {
+                Task.WaitAll(task);
+            }
+            else
+            {
+                _redisDb.Wait(task);
+            }
         }
 
         public T Wait<T>(Task<T> task)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.Wait(task);
+            {
+                Task.WaitAll(task);
+                return task.Result;
+            }
+            else
+            {
+                return _redisDb.Wait(task);
+            }
         }
 
         public void WaitAll(params Task[] tasks)
         {
             if (_redisDb == null)
-                throw new NotImplementedException();
-
-            _redisDb.WaitAll(tasks);
+            {
+                Task.WaitAll(tasks);
+            }
+            else
+            {
+                _redisDb.WaitAll(tasks);
+            }
         }
 
         public void Dispose()
