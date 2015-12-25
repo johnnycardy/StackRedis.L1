@@ -74,6 +74,7 @@
     <Compile Include="String\StringGetSetAsync.cs" />
     <Compile Include="String\StringGetSet.cs" />
     <Compile Include="String\StringGetWithExpiryAsync.cs" />
+    <Compile Include="String\StringIncrement.cs" />
     <Compile Include="String\StringLengthAsync.cs" />
     <Compile Include="String\StringLength.cs" />
     <Compile Include="String\StringSet.cs" />

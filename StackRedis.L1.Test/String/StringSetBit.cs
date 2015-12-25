@@ -12,6 +12,8 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringSetBit_Simple()
         {
+            _memDb.PauseKeyspaceNotifications();
+
             _memDb.StringSet("key", "value");
             Assert.AreEqual(1, _redisDb.Calls);
 
@@ -46,6 +48,8 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringSetBitAsync_Simple()
         {
+            _memDb.PauseKeyspaceNotifications();
+
             await _memDb.StringSetAsync("key", "value");
             Assert.AreEqual(1, _redisDb.Calls);
 

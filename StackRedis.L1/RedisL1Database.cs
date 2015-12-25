@@ -1977,32 +1977,40 @@ namespace StackRedis.L1
 
         public double StringIncrement(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
-                throw new NotImplementedException();
+                throw new NotImplementedException("StringIncrement not yet supported as an in-memory operation");
 
             return _redisDb.StringIncrement(key, value, flags);
         }
 
         public long StringIncrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
-                throw new NotImplementedException();
+                throw new NotImplementedException("StringIncrement not yet supported as an in-memory operation");
 
             return _redisDb.StringIncrement(key, value, flags);
         }
 
         public Task<double> StringIncrementAsync(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
-                throw new NotImplementedException();
+                throw new NotImplementedException("StringIncrement not yet supported as an in-memory operation");
 
             return _redisDb.StringIncrementAsync(key, value, flags);
         }
 
         public Task<long> StringIncrementAsync(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
-                throw new NotImplementedException();
+                throw new NotImplementedException("StringIncrement not yet supported as an in-memory operation");
 
             return _redisDb.StringIncrementAsync(key, value, flags);
         }

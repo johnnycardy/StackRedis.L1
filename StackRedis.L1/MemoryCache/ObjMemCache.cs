@@ -89,8 +89,13 @@ namespace StackRedis.L1.MemoryCache
             {
                 if (_cache.Contains(key))
                 {
+                    System.Diagnostics.Debug.WriteLine("Mem cache hit: " + key);
                     T result = (T)_cache[key];
                     return new ValOrRefNullable<T>(result);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Mem cache miss: " + key);
                 }
             }
 

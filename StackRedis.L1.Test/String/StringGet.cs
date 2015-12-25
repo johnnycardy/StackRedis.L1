@@ -92,7 +92,7 @@ namespace StackRedis.L1.Test
             Assert.AreEqual("value1", (string)_memDb.StringGet("key_exp"));
             Assert.AreEqual(2, _redisDb.Calls);
 
-            await Task.Delay(100);
+            await Task.Delay(200);
 
             //Get it again - should go back to redis, where it's now not set since it's expired
             Assert.IsFalse(_memDb.StringGet("key_exp").HasValue);

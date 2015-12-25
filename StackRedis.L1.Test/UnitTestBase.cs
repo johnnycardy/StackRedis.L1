@@ -31,7 +31,9 @@ namespace StackRedis.L1.Test
 
             //Construct the in-memory cache
             _memDb = new RedisL1Database(_redisDb);
-            
+
+            server.ConfigSet("notify-keyspace-events", "KEA");
+
             //Clean everything out
             server.FlushAllDatabases();
             _memDb.Flush();
