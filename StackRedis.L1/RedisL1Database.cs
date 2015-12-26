@@ -1769,6 +1769,8 @@ namespace StackRedis.L1
 
         public double StringDecrement(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1777,6 +1779,8 @@ namespace StackRedis.L1
 
         public long StringDecrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1785,20 +1789,27 @@ namespace StackRedis.L1
 
         public Task<double> StringDecrementAsync(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
             return _redisDb.StringDecrementAsync(key, value, flags);
         }
-
+        
         public Task<long> StringDecrementAsync(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
+            _dbData.MemoryCache.Remove(new[] { (string)key });
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
             return _redisDb.StringDecrementAsync(key, value, flags);
         }
 
+        /// <summary>
+        /// Gets a string from memory, or from Redis if it isn't present.
+        /// </summary>
         public RedisValue[] StringGet(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
             return _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys =>
@@ -1813,7 +1824,10 @@ namespace StackRedis.L1
                 }
             }).Result;
         }
-        
+
+        /// <summary>
+        /// Gets a string from memory, or from Redis if it isn't present.
+        /// </summary>
         public RedisValue StringGet(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             return _dbData.MemoryStrings.GetFromMemory(key, () =>
@@ -1831,6 +1845,9 @@ namespace StackRedis.L1
             }).Result;
         }
 
+        /// <summary>
+        /// Gets a string from memory, or from Redis if it isn't present.
+        /// </summary>
         public async Task<RedisValue[]> StringGetAsync(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
             return await _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys =>
@@ -1846,6 +1863,9 @@ namespace StackRedis.L1
             });
         }
 
+        /// <summary>
+        /// Calls redis to get a string bit.
+        /// </summary>
         public async Task<RedisValue> StringGetAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             return await _dbData.MemoryStrings.GetFromMemory(key, () =>
@@ -1861,6 +1881,9 @@ namespace StackRedis.L1
             });
         }
 
+        /// <summary>
+        /// Calls redis to get a string bit.
+        /// </summary>
         public bool StringGetBit(RedisKey key, long offset, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1869,6 +1892,9 @@ namespace StackRedis.L1
             return _redisDb.StringGetBit(key, offset, flags);
         }
 
+        /// <summary>
+        /// Calls redis to get a string bit.
+        /// </summary>
         public Task<bool> StringGetBitAsync(RedisKey key, long offset, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1877,6 +1903,9 @@ namespace StackRedis.L1
             return _redisDb.StringGetBitAsync(key, offset, flags);
         }
 
+        /// <summary>
+        /// Calls redis to get a string range.
+        /// </summary>
         public RedisValue StringGetRange(RedisKey key, long start, long end, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1885,6 +1914,9 @@ namespace StackRedis.L1
             return _redisDb.StringGetRange(key, start, end, flags);
         }
 
+        /// <summary>
+        /// Calls redis to get a string range.
+        /// </summary>
         public Task<RedisValue> StringGetRangeAsync(RedisKey key, long start, long end, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1893,6 +1925,9 @@ namespace StackRedis.L1
             return _redisDb.StringGetRangeAsync(key, start, end, flags);
         }
 
+        /// <summary>
+        /// Sets value in redis, and gets it from memory if possible.
+        /// </summary>
         public RedisValue StringGetSet(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
             bool hasSetInRedis = false;
@@ -1918,6 +1953,9 @@ namespace StackRedis.L1
             return result;
         }
 
+        /// <summary>
+        /// Sets value in redis, and gets it from memory if possible.
+        /// </summary>
         public async Task<RedisValue> StringGetSetAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
             bool hasSetInRedis = false;
@@ -1927,7 +1965,7 @@ namespace StackRedis.L1
                     return Task.FromResult(new RedisValue());
 
                 hasSetInRedis = true;
-                return _redisDb.StringGetAsync(key, flags);
+                return _redisDb.StringGetSetAsync(key, value, flags);
             });
 
             //Set it in memory
@@ -1940,6 +1978,9 @@ namespace StackRedis.L1
             return result;
         }
 
+        /// <summary>
+        /// Gets value from Memory, or from Redis if not present.
+        /// </summary>
         public RedisValueWithExpiry StringGetWithExpiry(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             return _dbData.MemoryStrings.GetFromMemoryWithExpiry(key, () =>
@@ -1958,12 +1999,13 @@ namespace StackRedis.L1
             
         }
 
+        /// <summary>
+        /// Gets value from Memory, or from Redis if not present.
+        /// </summary>
         public Task<RedisValueWithExpiry> StringGetWithExpiryAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             return _dbData.MemoryStrings.GetFromMemoryWithExpiry(key, () =>
             {
-                System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
-
                 if (_redisDb == null)
                 {
                     return Task.FromResult(new RedisValueWithExpiry());
@@ -1975,6 +2017,9 @@ namespace StackRedis.L1
             });
         }
 
+        /// <summary>
+        /// Forwards the request to Redis and invalidates in-memory value.
+        /// </summary>
         public double StringIncrement(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -1985,6 +2030,9 @@ namespace StackRedis.L1
             return _redisDb.StringIncrement(key, value, flags);
         }
 
+        /// <summary>
+        /// Forwards the request to Redis and invalidates in-memory value.
+        /// </summary>
         public long StringIncrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -1995,6 +2043,9 @@ namespace StackRedis.L1
             return _redisDb.StringIncrement(key, value, flags);
         }
 
+        /// <summary>
+        /// Forwards the request to Redis and invalidates in-memory value.
+        /// </summary>
         public Task<double> StringIncrementAsync(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -2005,6 +2056,9 @@ namespace StackRedis.L1
             return _redisDb.StringIncrementAsync(key, value, flags);
         }
 
+        /// <summary>
+        /// Forwards the request to Redis and invalidates in-memory value.
+        /// </summary>
         public Task<long> StringIncrementAsync(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -2015,6 +2069,10 @@ namespace StackRedis.L1
             return _redisDb.StringIncrementAsync(key, value, flags);
         }
 
+        /// <summary>
+        /// Gets the string length from memory, if the string is stored in memory.
+        /// Otherwise, gets it from Redis.
+        /// </summary>
         public long StringLength(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             //Try and get the string from memory
@@ -2022,9 +2080,14 @@ namespace StackRedis.L1
             if (length > 0 || _redisDb == null)
                 return length;
             else
+                //Todo: we could cache the length
                 return _redisDb.StringLength(key, flags);
         }
 
+        /// <summary>
+        /// Gets the string length from memory, if the string is stored in memory.
+        /// Otherwise, gets it from Redis.
+        /// </summary>
         public Task<long> StringLengthAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             long length = _dbData.MemoryStrings.GetStringLength(key);
@@ -2033,9 +2096,13 @@ namespace StackRedis.L1
                 return Task.FromResult(length);
             }
 
+            //Todo: we could cache the length
             return _redisDb.StringLengthAsync(key, flags);
         }
 
+        /// <summary>
+        /// Sets a string in both memory and Redis.
+        /// </summary>
         public bool StringSet(KeyValuePair<RedisKey, RedisValue>[] values, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
             foreach(var kvp in values)
@@ -2049,6 +2116,9 @@ namespace StackRedis.L1
             return _redisDb.StringSet(values, when, flags);
         }
 
+        /// <summary>
+        /// Sets a string in both memory and Redis
+        /// </summary>
         public bool StringSet(RedisKey key, RedisValue value, TimeSpan? expiry = default(TimeSpan?), When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Add(key, value, expiry, when);
@@ -2059,6 +2129,9 @@ namespace StackRedis.L1
             return _redisDb.StringSet(key, value, expiry, when, flags);
         }
 
+        /// <summary>
+        /// Sets a string in both memory and Redis
+        /// </summary>
         public Task<bool> StringSetAsync(KeyValuePair<RedisKey, RedisValue>[] values, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
             foreach (var kvp in values)
@@ -2072,6 +2145,9 @@ namespace StackRedis.L1
             return _redisDb.StringSetAsync(values, when, flags);
         }
 
+        /// <summary>
+        /// Sets a string in both memory and Redis.
+        /// </summary>
         public Task<bool> StringSetAsync(RedisKey key, RedisValue value, TimeSpan? expiry = default(TimeSpan?), When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Add(key, value, expiry, when);
@@ -2082,6 +2158,9 @@ namespace StackRedis.L1
             return _redisDb.StringSetAsync(key, value, expiry, when, flags);
         }
 
+        /// <summary>
+        /// Forwards request to redis and invalidates in-memory value.
+        /// </summary>
         public bool StringSetBit(RedisKey key, long offset, bool bit, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -2096,6 +2175,9 @@ namespace StackRedis.L1
             }
         }
 
+        /// <summary>
+        /// Forwards request to redis and invalidates in-memory value.
+        /// </summary>
         public Task<bool> StringSetBitAsync(RedisKey key, long offset, bool bit, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -2110,6 +2192,9 @@ namespace StackRedis.L1
             }
         }
 
+        /// <summary>
+        /// Forwards request to redis and invalidates in-memory value.
+        /// </summary>
         public RedisValue StringSetRange(RedisKey key, long offset, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -2120,6 +2205,9 @@ namespace StackRedis.L1
             return _redisDb.StringSetRange(key, offset, value, flags);
         }
 
+        /// <summary>
+        /// Forwards request to redis and invalidates in-memory value.
+        /// </summary>
         public Task<RedisValue> StringSetRangeAsync(RedisKey key, long offset, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
