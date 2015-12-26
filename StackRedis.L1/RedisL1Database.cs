@@ -119,40 +119,78 @@ namespace StackRedis.L1
             return _redisDb.HashDecrementAsync(key, hashField, value, flags);
         }
 
+        /// <summary>
+        /// Deletes hash key from memory and Redis.
+        /// </summary>
         public long HashDelete(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashDelete(key, hashFields, flags);
+            long deleted = _dbData.MemoryHashes.Delete(key, hashFields);
+
+            if (_redisDb != null)
+                return _redisDb.HashDelete(key, hashFields, flags);
+            else
+                return deleted;
         }
 
+        /// <summary>
+        /// Deletes hash key from memory and Redis.
+        /// </summary>
         public bool HashDelete(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashDelete(key, hashField, flags);
+            long deleted = _dbData.MemoryHashes.Delete(key, new[] { hashField });
+
+            if (_redisDb != null)
+                return _redisDb.HashDelete(key, hashField, flags);
+            else
+                return deleted > 0;
         }
 
-        public Task<long> HashDeleteAsync(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
+        /// <summary>
+        /// Deletes hash key from memory and Redis.
+        /// </summary>
+        public async Task<long> HashDeleteAsync(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashDeleteAsync(key, hashFields, flags);
+            long deleted = _dbData.MemoryHashes.Delete(key, hashFields);
+
+            if (_redisDb != null)
+                return await _redisDb.HashDeleteAsync(key, hashFields, flags);
+            else
+                return deleted;
         }
 
-        public Task<bool> HashDeleteAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
+        /// <summary>
+        /// Deletes hash key from memory and Redis.
+        /// </summary>
+        public async Task<bool> HashDeleteAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashDeleteAsync(key, hashField, flags);
-        }
+            long deleted = _dbData.MemoryHashes.Delete(key, new[] { hashField });
 
+            if (_redisDb != null)
+                return await _redisDb.HashDeleteAsync(key, hashField, flags);
+            else
+                return deleted > 0;
+        }
+        
         public bool HashExists(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashExists(key, hashField, flags);
+            if (_dbData.MemoryHashes.Contains(key, hashField))
+                return true;
+
+            if (_redisDb == null)
+                return false;
+            else
+                return _redisDb.HashExists(key, hashField, flags);
         }
 
         public Task<bool> HashExistsAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashExistsAsync(key, hashField, flags);
+            if (_dbData.MemoryHashes.Contains(key, hashField))
+                return Task.FromResult(true);
+
+            if (_redisDb == null)
+                return Task.FromResult(false);
+            else
+                return _redisDb.HashExistsAsync(key, hashField, flags);
         }
 
         public RedisValue[] HashGet(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)

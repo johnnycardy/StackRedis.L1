@@ -71,11 +71,13 @@ namespace StackRedis.L1.KeyspaceNotifications
         public ObjMemCache MemoryCache { get; private set; }
 
         internal MemoryStrings MemoryStrings { get; private set; }
+        internal MemoryHashes MemoryHashes { get; private set; }
 
         internal DatabaseInstanceData(IDatabase redisDb)
         {
             MemoryCache = new ObjMemCache();
             MemoryStrings = new MemoryStrings(MemoryCache);
+            MemoryHashes = new MemoryHashes(MemoryCache);
 
             //If we have access to a redis instance, then listen to it for notifications
             if (redisDb != null)
