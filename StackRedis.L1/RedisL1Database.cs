@@ -1689,20 +1689,44 @@ namespace StackRedis.L1
 
         public long StringAppend(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long result = _dbData.MemoryStrings.AppendToString(key, value);
 
-            return _redisDb.StringAppend(key, value, flags);
+            if (_redisDb == null)
+                return result;
+            else
+            {
+                long redisResult = _redisDb.StringAppend(key, value, flags);
+
+                //If the in-mem result is different from the redis result then clear memory
+                if (redisResult != result)
+                    _dbData.MemoryCache.Remove(new[] { (string)key });
+                
+                return redisResult;
+            }
         }
 
-        public Task<long> StringAppendAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
+
+        public async Task<long> StringAppendAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
+            long result = _dbData.MemoryStrings.AppendToString(key, value);
+
             if (_redisDb == null)
-                throw new NotImplementedException();
+                return result;
+            else
+            {
+                long redisResult = await _redisDb.StringAppendAsync(key, value, flags);
 
-            return _redisDb.StringAppendAsync(key, value, flags);
+                //If the in-mem result is different from the redis result then clear memory
+                if (redisResult != result)
+                    _dbData.MemoryCache.Remove(new[] { (string)key });
+
+                return redisResult;
+            }
         }
-
+        
+        /// <summary>
+        /// Returns the value directly from Redis.
+        /// </summary>
         public long StringBitCount(RedisKey key, long start = 0, long end = -1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1711,6 +1735,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitCount(key, start, end, flags);
         }
 
+        /// <summary>
+        /// Returns the value directly from Redis.
+        /// </summary>
         public Task<long> StringBitCountAsync(RedisKey key, long start = 0, long end = -1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1719,6 +1746,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitCountAsync(key, start, end, flags);
         }
 
+        /// <summary>
+        /// Performs and returns the value directly from Redis.
+        /// </summary>
         public long StringBitOperation(Bitwise operation, RedisKey destination, RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1727,6 +1757,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitOperation(operation, destination, keys, flags);
         }
 
+        /// <summary>
+        /// Performs and returns the value directly from Redis.
+        /// </summary>
         public long StringBitOperation(Bitwise operation, RedisKey destination, RedisKey first, RedisKey second = default(RedisKey), CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1735,6 +1768,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitOperation(operation, destination, first, second, flags);
         }
 
+        /// <summary>
+        /// Performs and returns the value directly from Redis.
+        /// </summary>
         public Task<long> StringBitOperationAsync(Bitwise operation, RedisKey destination, RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1743,6 +1779,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitOperationAsync(operation, destination, keys, flags);
         }
 
+        /// <summary>
+        /// Performs and returns the value directly from Redis.
+        /// </summary>
         public Task<long> StringBitOperationAsync(Bitwise operation, RedisKey destination, RedisKey first, RedisKey second = default(RedisKey), CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1751,6 +1790,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitOperationAsync(operation, destination, first, second, flags);
         }
 
+        /// <summary>
+        /// Returns the value directly from Redis.
+        /// </summary>
         public long StringBitPosition(RedisKey key, bool bit, long start = 0, long end = -1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1759,6 +1801,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitPosition(key, bit, start, end, flags);
         }
 
+        /// <summary>
+        /// Returns the value directly from Redis.
+        /// </summary>
         public Task<long> StringBitPositionAsync(RedisKey key, bool bit, long start = 0, long end = -1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1767,6 +1812,9 @@ namespace StackRedis.L1
             return _redisDb.StringBitPositionAsync(key, bit, start, end, flags);
         }
 
+        /// <summary>
+        /// Decrements a string in Redis, and removes the string from memory if present.
+        /// </summary>
         public double StringDecrement(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -1777,6 +1825,9 @@ namespace StackRedis.L1
             return _redisDb.StringDecrement(key, value, flags);
         }
 
+        /// <summary>
+        /// Decrements a string in Redis, and removes the string from memory if present.
+        /// </summary>
         public long StringDecrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -1787,6 +1838,9 @@ namespace StackRedis.L1
             return _redisDb.StringDecrement(key, value, flags);
         }
 
+        /// <summary>
+        /// Decrements a string in Redis, and removes the string from memory if present.
+        /// </summary>
         public Task<double> StringDecrementAsync(RedisKey key, double value, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });
@@ -1797,6 +1851,9 @@ namespace StackRedis.L1
             return _redisDb.StringDecrementAsync(key, value, flags);
         }
         
+        /// <summary>
+        /// Decrements a string in Redis, and removes the string from memory if present.
+        /// </summary>
         public Task<long> StringDecrementAsync(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             _dbData.MemoryCache.Remove(new[] { (string)key });

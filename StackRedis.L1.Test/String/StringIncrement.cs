@@ -33,7 +33,7 @@ namespace StackRedis.L1.Test
             _memDb.StringSet("key", "1");
             Assert.AreEqual(1, _redisDb.Calls);
 
-            _memDb.StringIncrement("key", 1.5);
+            _redisDb.StringIncrement("key", 1.5);
             Assert.AreEqual(2, _redisDb.Calls);
 
             //Give it a moment to propagate
@@ -86,7 +86,7 @@ namespace StackRedis.L1.Test
             _memDb.StringSet("key", "1");
             Assert.AreEqual(1, _redisDb.Calls);
 
-            _memDb.StringIncrement("key", 2);
+            _redisDb.StringIncrement("key", 2);
             Assert.AreEqual(2, _redisDb.Calls);
 
             //Give it a moment to propagate

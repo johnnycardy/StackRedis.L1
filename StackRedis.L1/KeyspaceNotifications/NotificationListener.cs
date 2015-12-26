@@ -94,7 +94,8 @@ namespace StackRedis.L1.KeyspaceNotifications
             }
             else if(kvp.Value == "setbit" || kvp.Value == "setrange" || 
                     kvp.Value == "incrby" || kvp.Value == "incrbyfloat" ||
-                    kvp.Value == "decrby" || kvp.Value == "decrbyfloat")
+                    kvp.Value == "decrby" || kvp.Value == "decrbyfloat" ||
+                    kvp.Value == "append")
             {
                 //Memory cache does not currently calculate "setbit" results. So we always need to remove the key.
                 dbData.MemoryCache.Remove(new[] { kvp.Key });

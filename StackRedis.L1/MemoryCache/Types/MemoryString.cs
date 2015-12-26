@@ -163,5 +163,29 @@ namespace StackRedis.L1.MemoryCache.Types
                 return false;
             }
         }
+
+        internal long AppendToString(string key, string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                var existingValue = _memCache.Get<RedisValue>(key);
+                if (existingValue.HasValue)
+                {
+                    //Get it and append it
+                    string newValue = existingValue.Value + value;
+                    _memCache.Update(key, (RedisValue)newValue);
+
+                    return newValue.Length;
+                }
+                else
+                {
+                    //Create a new string
+                    _memCache.Add(key, (RedisValue)value, null, When.Always);
+                    return value.Length;
+                }
+            }
+
+            return 0;
+        }
     }
 }
