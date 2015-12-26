@@ -22,6 +22,17 @@ If you are already using StackExchange.Redis, then integration into your project
   
 Since the `RedisL1Database` implements `IDatabase`, it's a simple swap.
 
+If you wish to clear your in-memory state, simply `Dispose` it and re-create it.
+
 ### Project State
 
 It's early days... at the moment, most calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet but won't affect other parts of IDatabase.
+
+### Limitations
+
+There is currently a trade-off between performance and data integrety in a specific scenario. When two instances of this in-memory cache are connected to the same Redis database, and update the same key within a configurable timespan (currently 1s), then one of the servers will be left with an out-of-date value.
+
+This is remediated by one or more of the following methods:
+ - Decide whether it's a risk: in your scenario, you may be doing frequent reads and infrequent writes. This is when the in-memory solution is most effective, and also renders the out-of-date value problem unlikely.
+ - Key timeouts will expire the invalid value within a known time.
+ - A subsequent update will overwrite the invalid key.
