@@ -82,9 +82,10 @@ namespace StackRedis.L1.KeyspaceNotifications
             {
                 if (isRecentlyAddedOnThisServer)
                 {
-                    //todo: now there has been a value set on another server and this server, within a very close timespan.
-                    //1 - the notification may actually be from this server - not another. We don't know.
-                    //2 - if a value is set on another server, we may or may not have an out of date value in memory. Again, we don't know.
+                    //Now there has two values set from different servers within a very close timespan (see ObjMemCache.RecentKeyMilliseconds)
+                    //There are two scenarios:
+                    //1 - the notification is from this server, not another. We have the correct value in memory and shouldn't delete it.
+                    //2 - the notification is from another server. We have the incorrect value in memory and should delete it.
                 }
                 else
                 {

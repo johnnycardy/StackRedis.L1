@@ -1687,6 +1687,9 @@ namespace StackRedis.L1
             return _redisDb.SortedSetScoreAsync(key, member, flags);
         }
 
+        /// <summary>
+        /// Appends the string both in Redis and in-memory.
+        /// </summary>
         public long StringAppend(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
             long result = _dbData.MemoryStrings.AppendToString(key, value);
@@ -1705,7 +1708,9 @@ namespace StackRedis.L1
             }
         }
 
-
+        /// <summary>
+        /// Appends the string both in Redis and in-memory.
+        /// </summary>
         public async Task<long> StringAppendAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
             long result = _dbData.MemoryStrings.AppendToString(key, value);

@@ -18,6 +18,15 @@ namespace StackRedis.L1.MemoryCache
         //recent key storage
         private System.Runtime.Caching.MemoryCache _recentKeys;
 
+        /// <summary>
+        /// This is the length of time for which a key is considered 'recent'.
+        /// It's the length of time we can be fairly certain that a keyspace notification will be delivered between servers.
+        ///     (If notifications take longer than this amount of time, it will affect in-memory cache performance, but not integrity)
+        /// If two in-memory instances are used to update the same value within this timespan, then one will store an out-of-date value,
+        /// and this is the currently accepted risk of the in-memory cache.
+        /// </summary>
+        internal static readonly int RecentKeyMilliseconds = 1000;
+
         //When you add an item to MemoryCache with a specific TTL, you can't retrieve it again.
         //So, we store them separately.
         private Dictionary<string, DateTimeOffset?> _ttls = new Dictionary<string, DateTimeOffset?>();

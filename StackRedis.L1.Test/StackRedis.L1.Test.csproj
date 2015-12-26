@@ -56,6 +56,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="KeyspaceEvents\KeyspaceConcurrencyTest_FAILS.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_del.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_expire.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_rename.cs" />
