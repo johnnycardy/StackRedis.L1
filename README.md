@@ -30,7 +30,7 @@ It's early days... at the moment, most calls involving the `String` type are acc
 
 ### Limitations
 
-There is currently a trade-off between performance and data integrety in a specific scenario. When two instances of this in-memory cache are connected to the same Redis database, and update the same key within a configurable timespan (currently 1s), then one of the servers will be left with an out-of-date value.
+There is currently a trade-off between performance and data integrity in a specific scenario. When two instances of this in-memory cache are connected to the same Redis database, and update the same key within a configurable timespan (currently 1s), then one of the servers will be left with an out-of-date value.
 
 This is remediated by one or more of the following methods:
  - Decide whether it's a risk: in your scenario, you may be doing frequent reads and infrequent writes. This is when the in-memory solution is most effective, and also renders the out-of-date value problem unlikely.
