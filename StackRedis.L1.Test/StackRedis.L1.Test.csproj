@@ -58,6 +58,8 @@
   <ItemGroup>
     <Compile Include="Hash\HashDeleteAsync.cs" />
     <Compile Include="Hash\HashDelete.cs" />
+    <Compile Include="Hash\HashExistsAsync.cs" />
+    <Compile Include="Hash\HashExists.cs" />
     <Compile Include="Hash\HashGetAll.cs" />
     <Compile Include="Hash\HashGetAsync.cs" />
     <Compile Include="Hash\HashGet.cs" />
