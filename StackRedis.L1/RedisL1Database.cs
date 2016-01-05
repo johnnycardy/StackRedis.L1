@@ -87,7 +87,9 @@ namespace StackRedis.L1
 
         public double HashDecrement(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
+            if (_redisDb == null)
+                throw new NotImplementedException();
+
             return _redisDb.HashDecrement(key, hashField, value, flags);
         }
 
@@ -242,11 +244,11 @@ namespace StackRedis.L1
 
         public Task<RedisValue> HashGetAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryHashes.Get(key, hashField, async (missingKeys) =>
+            return _dbData.MemoryHashes.Get(key, hashField, async (hashEntryKey) =>
             {
                 if (_redisDb != null)
                 {
-                    return await _redisDb.HashGetAsync(key, missingKeys, flags);
+                    return await _redisDb.HashGetAsync(key, hashField, flags);
                 }
                 else
                 {

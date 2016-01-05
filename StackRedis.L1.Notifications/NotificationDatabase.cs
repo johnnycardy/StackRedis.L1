@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Diagnostics;
 
 namespace StackRedis.L1
 {
@@ -16,9 +17,9 @@ namespace StackRedis.L1
         protected IDatabase _redisDb;
         private ISubscriber _sub;
         private string _channelDb;
-        private string _machineId;
+        private string _process;
         
-        public NotificationDatabase(IDatabase redisDb, string machineId = null)
+        public NotificationDatabase(IDatabase redisDb, string processId = null)
         {
             if (redisDb == null)
                 throw new ArgumentException();
@@ -26,13 +27,13 @@ namespace StackRedis.L1
             _redisDb = redisDb;
             _sub = redisDb.Multiplexer.GetSubscriber();
             _channelDb = "__keyspace_detailed@" + redisDb.Database + "__:";
-            _machineId = machineId ?? GetMachineId();
+            _process = processId ?? GetProcessId();
         }
 
         /// <summary>
-        /// Returns the current machine unique ID.
+        /// Returns the current machine unique ID and the process.
         /// </summary>
-        public static string GetMachineId()
+        public static string GetProcessId()
         {
             string result = NetworkInterface.GetAllNetworkInterfaces()
                             .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
@@ -41,13 +42,13 @@ namespace StackRedis.L1
             if (string.IsNullOrEmpty(result))
                 result = Environment.MachineName;
 
-            return result;
+            return result + Process.GetCurrentProcess().Id.ToString();
         }
 
         private void PublishEvent(string key, string keyMessage)
         {
             string channel = _channelDb + key;
-            string message = $"{_machineId}:{keyMessage}";
+            string message = $"{_process}:{keyMessage}";
 
             //Publish the event
             _sub.Publish(channel, message);
@@ -131,7 +132,8 @@ namespace StackRedis.L1
         /// </summary>
         public long HashDelete(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
         {
-
+            foreach(var hashField in hashFields)
+                this.PublishEvent(key, "hdel:" + (string)hashField);
 
             return _redisDb.HashDelete(key, hashFields, flags);
         }
@@ -141,7 +143,7 @@ namespace StackRedis.L1
         /// </summary>
         public bool HashDelete(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-
+            this.PublishEvent(key, "hdel:" + (string)hashField);
             return _redisDb.HashDelete(key, hashField, flags);
         }
 
@@ -150,7 +152,8 @@ namespace StackRedis.L1
         /// </summary>
         public Task<long> HashDeleteAsync(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
         {
-
+            foreach (var hashField in hashFields)
+                this.PublishEvent(key, "hdel:" + (string)hashField);
             return _redisDb.HashDeleteAsync(key, hashFields, flags);
         }
 
@@ -159,7 +162,7 @@ namespace StackRedis.L1
         /// </summary>
         public Task<bool> HashDeleteAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-
+            this.PublishEvent(key, "hdel:" + (string)hashField);
             return _redisDb.HashDeleteAsync(key, hashField, flags);
         }
 
@@ -541,10 +544,6 @@ namespace StackRedis.L1
 
         public Task<bool> KeyPersistAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
             return _redisDb.KeyPersistAsync(key, flags);
         }
 

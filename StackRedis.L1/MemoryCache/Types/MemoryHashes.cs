@@ -19,7 +19,7 @@ namespace StackRedis.L1.MemoryCache.Types
         {
             return (await GetMulti(hashKey, new RedisValue[] { key }, async (keys) =>
             {
-                RedisValue result = await retrieval(hashKey);
+                RedisValue result = await retrieval(key);
                 return new[] { result };
             })).Single();
         }

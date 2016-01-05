@@ -18,7 +18,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         
         internal bool Paused { get; set; }
 
-        private string _currentMachineId = NotificationDatabase.GetMachineId();
+        private string _currentMachineId = NotificationDatabase.GetProcessId();
 
         internal NotificationListener(ConnectionMultiplexer connection)
         {
@@ -68,19 +68,19 @@ namespace StackRedis.L1.KeyspaceNotifications
         {
             _databases.Add(dbData);
         }
-        
+
         private void HandleKeyspaceDetailEvent(DatabaseInstanceData dbData, string key, string machine, string eventType)
         {
             System.Diagnostics.Debug.WriteLine("Keyspace detail event. Key=" + key + ", Machine=" + machine + ", Event=" + eventType);
 
             string eventName = eventType.Split(':').First();
             string eventArg = "";
-            if(eventName.Length < eventType.Length)
+            if (eventName.Length < eventType.Length)
             {
                 eventArg = eventType.Substring(eventName.Length + 1);
             }
 
-            if(eventName == "hset")
+            if (eventName == "hset" || eventName == "hdel")
             {
                 dbData.MemoryHashes.Delete(key, new[] { (RedisValue)eventArg });
             }
@@ -97,7 +97,7 @@ namespace StackRedis.L1.KeyspaceNotifications
                     dbData.MemoryCache.RenameKey(key, eventArg);
                 }
             }
-            else if(eventName == "set" /* Setting a string */)
+            else if (eventName == "set" /* Setting a string */)
             {
                 //A key has been set by another client. If it exists in memory, it is probably now outdated.
                 dbData.MemoryCache.Remove(new[] { key });
