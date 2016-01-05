@@ -40,5 +40,37 @@ namespace StackRedis.L1.Test
             Assert.AreEqual("key2", (string)all[0].Name);
             Assert.AreEqual("value2", (string)all[0].Value);
         }
+
+        [TestMethod]
+        public async Task HashGetAllAsync_Simple()
+        {
+            await _redisDirectDb.HashSetAsync("hashKey", new HashEntry[] { new HashEntry("key1", "value1"), new HashEntry("key2", "value2") });
+            var all = await _memDb.HashGetAllAsync("hashKey");
+            Assert.AreEqual("key1", (string)all[0].Name);
+            Assert.AreEqual("value1", (string)all[0].Value);
+            Assert.AreEqual("key2", (string)all[1].Name);
+            Assert.AreEqual("value2", (string)all[1].Value);
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Retrieve an individual value
+            Assert.AreEqual("value1", (string)await _memDb.HashGetAsync("hashKey", "key1"));
+            Assert.AreEqual(1, CallsByMemDb);
+        }
+
+        [TestMethod]
+        public async Task HashGetAllAsync_ClearsOldItems()
+        {
+            await _redisDirectDb.HashSetAsync("hashKey", new HashEntry[] { new HashEntry("key1", "value1"), new HashEntry("key2", "value2") });
+            var all = await _memDb.HashGetAllAsync("hashKey");
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Delete an item in redis
+            await _redisDirectDb.HashDeleteAsync("hashKey", "key1");
+            all = await _memDb.HashGetAllAsync("hashKey");
+            Assert.AreEqual(2, CallsByMemDb);
+            Assert.AreEqual(1, all.Length);
+            Assert.AreEqual("key2", (string)all[0].Name);
+            Assert.AreEqual("value2", (string)all[0].Value);
+        }
     }
 }
