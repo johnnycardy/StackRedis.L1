@@ -56,7 +56,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="KeyspaceEvents\KeyspaceConcurrencyTest_FAILS.cs" />
+    <Compile Include="Hash\HashGet.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_del.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_expire.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_rename.cs" />
@@ -91,6 +91,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\StackRedis.L1.Notifications\StackRedis.L1.Notifications.csproj">
+      <Project>{6b148145-7c3e-41df-beea-57e108513efe}</Project>
+      <Name>StackRedis.L1.Notifications</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StackRedis.L1\StackRedis.L1.csproj">
       <Project>{b2319d19-f48a-4c99-99d8-98145c30562e}</Project>
       <Name>StackRedis.L1</Name>
