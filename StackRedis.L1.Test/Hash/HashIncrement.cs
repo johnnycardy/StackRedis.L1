@@ -10,7 +10,39 @@ namespace StackRedis.L1.Test
     public class HashIncrement : UnitTestBase
     {
         [TestMethod]
-        public async Task HashIncrement_Double()
+        public void HashIncrement_Double()
+        {
+            _memDb.HashSet("hashKey", "key1", "1");
+            _memDb.HashIncrement("hashKey", "key1", 1.0);
+            Assert.AreEqual("2", (string)_memDb.HashGet("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public void HashIncrement_Int()
+        {
+            _memDb.HashSet("hashKey", "key1", "1");
+            _memDb.HashIncrement("hashKey", "key1", 1);
+            Assert.AreEqual("2", (string)_memDb.HashGet("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public void HashDecrement_Double()
+        {
+            _memDb.HashSet("hashKey", "key1", "2");
+            _memDb.HashDecrement("hashKey", "key1", 1.0);
+            Assert.AreEqual("1", (string)_memDb.HashGet("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public void HashDecrement_Int()
+        {
+            _memDb.HashSet("hashKey", "key1", "2");
+            _memDb.HashDecrement("hashKey", "key1", 1);
+            Assert.AreEqual("1", (string)_memDb.HashGet("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public async Task HashIncrement_OtherClient_Double()
         {
             _memDb.HashSet("hashKey", "key1", "1");
             _otherClientDb.HashIncrement("hashKey", "key1", 1.0);
@@ -19,7 +51,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashIncrement_Int()
+        public async Task HashIncrement_OtherClient_Int()
         {
             _memDb.HashSet("hashKey", "key1", "1");
             _otherClientDb.HashIncrement("hashKey", "key1", 1);
@@ -28,7 +60,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashDecrement_Double()
+        public async Task HashDecrement_OtherClient_Double()
         {
             _memDb.HashSet("hashKey", "key1", "2");
             _otherClientDb.HashDecrement("hashKey", "key1", 1.0);
@@ -37,7 +69,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashDecrement_Int()
+        public async Task HashDecrement_OtherClient_Int()
         {
             _memDb.HashSet("hashKey", "key1", "2");
             _otherClientDb.HashDecrement("hashKey", "key1", 1);

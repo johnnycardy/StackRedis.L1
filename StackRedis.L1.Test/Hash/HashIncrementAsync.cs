@@ -10,7 +10,7 @@ namespace StackRedis.L1.Test
     public class HashIncrementAsync : UnitTestBase
     {
         [TestMethod]
-        public async Task HashIncrementAsync_Double()
+        public async Task HashIncrementAsync_OtherClient_Double()
         {
             await _memDb.HashSetAsync("hashKey", "key1", "1");
             await _otherClientDb.HashIncrementAsync("hashKey", "key1", 1.0);
@@ -19,7 +19,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashIncrementAsync_Int()
+        public async Task HashIncrementAsync_OtherClient_Int()
         {
             await _memDb.HashSetAsync("hashKey", "key1", "1");
             await _otherClientDb.HashIncrementAsync("hashKey", "key1", 1);
@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashDecrementAsync_Double()
+        public async Task HashDecrementAsync_OtherClient_Double()
         {
             await _memDb.HashSetAsync("hashKey", "key1", "2");
             await _otherClientDb.HashDecrementAsync("hashKey", "key1", 1.0);
@@ -37,11 +37,43 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashDecrementAsync_Int()
+        public async Task HashDecrementAsync_OtherClient_Int()
         {
             await _memDb.HashSetAsync("hashKey", "key1", "2");
             await _otherClientDb.HashDecrementAsync("hashKey", "key1", 1);
             await Task.Delay(50);
+            Assert.AreEqual("1", (string)await _memDb.HashGetAsync("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public async Task HashIncrementAsync_Double()
+        {
+            await _memDb.HashSetAsync("hashKey", "key1", "1");
+            await _memDb.HashIncrementAsync("hashKey", "key1", 1.0);
+            Assert.AreEqual("2", (string)await _memDb.HashGetAsync("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public async Task HashIncrementAsync_Int()
+        {
+            await _memDb.HashSetAsync("hashKey", "key1", "1");
+            await _memDb.HashIncrementAsync("hashKey", "key1", 1);
+            Assert.AreEqual("2", (string)await _memDb.HashGetAsync("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public async Task HashDecrementAsync_Double()
+        {
+            await _memDb.HashSetAsync("hashKey", "key1", "2");
+            await _memDb.HashDecrementAsync("hashKey", "key1", 1.0);
+            Assert.AreEqual("1", (string)await _memDb.HashGetAsync("hashKey", "key1"));
+        }
+
+        [TestMethod]
+        public async Task HashDecrementAsync_Int()
+        {
+            await _memDb.HashSetAsync("hashKey", "key1", "2");
+            await _memDb.HashDecrementAsync("hashKey", "key1", 1);
             Assert.AreEqual("1", (string)await _memDb.HashGetAsync("hashKey", "key1"));
         }
     }

@@ -90,24 +90,29 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
+
             return _redisDb.HashDecrement(key, hashField, value, flags);
         }
 
         public long HashDecrement(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashDecrement(key, hashField, value, flags);
         }
 
         public Task<double> HashDecrementAsync(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashDecrementAsync(key, hashField, value, flags);
         }
 
         public Task<long> HashDecrementAsync(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashDecrementAsync(key, hashField, value, flags);
         }
 
@@ -264,24 +269,28 @@ namespace StackRedis.L1
         public double HashIncrement(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashIncrement(key, hashField, value, flags);
         }
 
         public long HashIncrement(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashIncrement(key, hashField, value, flags);
         }
 
         public Task<double> HashIncrementAsync(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashIncrementAsync(key, hashField, value, flags);
         }
 
         public Task<long> HashIncrementAsync(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            _dbData.MemoryHashes.Delete(key, new[] { hashField });
             return _redisDb.HashIncrementAsync(key, hashField, value, flags);
         }
 
