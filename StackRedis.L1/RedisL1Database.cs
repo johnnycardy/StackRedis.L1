@@ -393,12 +393,15 @@ namespace StackRedis.L1
         public RedisValue[] HashValues(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+
+            //Can't do much in memory
             return _redisDb.HashValues(key, flags);
         }
 
         public Task<RedisValue[]> HashValuesAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
+            //Can't do much in memory
             return _redisDb.HashValuesAsync(key, flags);
         }
 
