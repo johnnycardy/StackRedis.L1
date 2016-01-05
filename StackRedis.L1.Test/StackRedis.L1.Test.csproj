@@ -63,6 +63,7 @@
     <Compile Include="Hash\HashGetAll.cs" />
     <Compile Include="Hash\HashGetAsync.cs" />
     <Compile Include="Hash\HashGet.cs" />
+    <Compile Include="Hash\HashScan.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_del.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_expire.cs" />
     <Compile Include="KeyspaceEvents\Keyspace_rename.cs" />

@@ -312,13 +312,29 @@ namespace StackRedis.L1
         public IEnumerable<HashEntry> HashScan(RedisKey key, RedisValue pattern, int pageSize, CommandFlags flags)
         {
             if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashScan(key, pattern, pageSize, flags);
+            var result = _redisDb.HashScan(key, pattern, pageSize, flags);
+
+            foreach(var hashEntry in result)
+            {
+                //Store in the hash
+                _dbData.MemoryHashes.Set(key, new[] { hashEntry });
+
+                yield return hashEntry;
+            }
         }
 
         public IEnumerable<HashEntry> HashScan(RedisKey key, RedisValue pattern = default(RedisValue), int pageSize = 10, long cursor = 0, int pageOffset = 0, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashScan(key, pattern, pageSize, cursor, pageOffset, flags);
+            var result = _redisDb.HashScan(key, pattern, pageSize, cursor, pageOffset, flags);
+
+            foreach (var hashEntry in result)
+            {
+                //Store in the hash
+                _dbData.MemoryHashes.Set(key, new[] { hashEntry });
+
+                yield return hashEntry;
+            }
         }
 
         /// <summary>
