@@ -15,6 +15,26 @@ namespace StackRedis.L1.MemoryCache.Types
             _objMemCache = objMemCache;
         }
 
+        /// <summary>
+        /// Returns all items of the hash, storing them in memory.
+        /// TODO: cache a flag that indicates that all have been retrieved. That is difficult because there are lots of places to remove that flag (hashset, hashdelete, etc...)
+        /// </summary>
+        internal async Task<HashEntry[]> GetAll(string hashKey, Func<Task<HashEntry[]>> retrieval)
+        {
+            //At the moment, we always go to redis, but store the contents in the cache for later retrieval by HashGet.
+            var hashEntries = await retrieval();
+
+            //Empty existing keys
+            var hash = GetHash(hashKey);
+            if (hash != null)
+                hash.Clear();
+
+            //Save all the new values
+            Set(hashKey, hashEntries, When.Always);
+
+            return hashEntries;
+        }
+
         internal async Task<RedisValue> Get(string hashKey, RedisValue key, Func<RedisValue, Task<RedisValue>> retrieval)
         {
             return (await GetMulti(hashKey, new RedisValue[] { key }, async (keys) =>

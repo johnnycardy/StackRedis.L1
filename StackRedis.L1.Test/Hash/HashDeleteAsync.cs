@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashDelete_ByOtherClient()
+        public async Task HashDeleteAsync_ByOtherClient()
         {
             await _redisDirectDb.HashSetAsync("hashKey", new HashEntry[] { new HashEntry("key1", "value1"), new HashEntry("key2", "value2")});
             Assert.AreEqual("value1", (string)await _memDb.HashGetAsync("hashKey", "key1"));
@@ -48,7 +48,7 @@ namespace StackRedis.L1.Test
         }
 
         [TestMethod]
-        public async Task HashDelete_InMemKeyLeftAlone()
+        public async Task HashDeleteAsync_InMemKeyLeftAlone()
         {
             await _redisDirectDb.HashSetAsync("hashKey", new HashEntry[] { new HashEntry("key1", "value1"), new HashEntry("key2", "value2") });
             await _memDb.HashGetAsync("hashKey", new RedisValue[] { "key1", "key2" });

@@ -217,14 +217,18 @@ namespace StackRedis.L1
 
         public HashEntry[] HashGetAll(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashGetAll(key, flags);
+            if (_redisDb == null)
+                throw new NotImplementedException();
+
+            return _dbData.MemoryHashes.GetAll(key, () => Task.FromResult(_redisDb.HashGetAll(key, flags))).Result;
         }
 
         public Task<HashEntry[]> HashGetAllAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null) throw new NotImplementedException();
-            return _redisDb.HashGetAllAsync(key, flags);
+            if (_redisDb == null)
+                throw new NotImplementedException();
+
+            return _dbData.MemoryHashes.GetAll(key, () => _redisDb.HashGetAllAsync(key, flags));
         }
 
         public Task<RedisValue[]> HashGetAsync(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
