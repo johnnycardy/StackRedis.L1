@@ -14,11 +14,11 @@ namespace StackRedis.L1.Test
         {
 
             //Create a key
-            _redisDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
 
             //Rename it in Redis
-            _redisDb.KeyRename("key1", "renamedKey1");
+            _otherClientDb.KeyRename("key1", "renamedKey1");
 
             //Wait 100ms for it to take effect
             await Task.Delay(100);

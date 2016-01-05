@@ -13,14 +13,14 @@ namespace StackRedis.L1.Test
         public void StringSetRange_Simple()
         {
             _memDb.StringSet("key", "value");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringSetRange("key", 2, "x");
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //It should go back to redis to re-request the string
             string result = _memDb.StringGet("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(3, CallsByMemDb);
             Assert.AreNotEqual(result, "value");
         }
 
@@ -29,17 +29,17 @@ namespace StackRedis.L1.Test
         public async Task StringSetRange_InRedis_Notification()
         {
             _memDb.StringSet("key", "value");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
-            _redisDb.StringSetRange("key", 2, "x");
-            Assert.AreEqual(2, _redisDb.Calls);
+            _otherClientDb.StringSetRange("key", 2, "x");
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Give it a moment to propagate
             await Task.Delay(50);
 
             //It should go back to redis to re-request the string
             string result = _memDb.StringGet("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
             Assert.AreNotEqual(result, "value");
         }
 
@@ -47,14 +47,14 @@ namespace StackRedis.L1.Test
         public async Task StringSetRangeAsync_Simple()
         {
             await _memDb.StringSetAsync("key", "value");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringSetRangeAsync("key", 2, "x");
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //It should go back to redis to re-request the string
             string result = await _memDb.StringGetAsync("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(3, CallsByMemDb);
             Assert.AreNotEqual(result, "value");
         }
     }

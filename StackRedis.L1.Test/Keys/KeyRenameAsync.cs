@@ -14,19 +14,19 @@ namespace StackRedis.L1.Test
         {
             //Create a key
             await _memDb.StringSetAsync("key1", "str");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Rename it
             await _memDb.KeyRenameAsync("key1", "key2");
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //Check it's renamed in memory - should not need to go to redis
             System.Diagnostics.Debug.WriteLine("About to get key2");
             Assert.AreEqual((string)(await _memDb.StringGetAsync("key2")), "str");
-            Assert.AreEqual(2, _redisDb.Calls, "No extra calls should be required to get the renamed key");
+            Assert.AreEqual(2, CallsByMemDb, "No extra calls should be required to get the renamed key");
 
             //Check it's renamed in redis
-            Assert.IsNull((string)await _redisDb.StringGetAsync("key1"));
+            Assert.IsNull((string)await _redisDirectDb.StringGetAsync("key1"));
         }
 
 
@@ -37,7 +37,7 @@ namespace StackRedis.L1.Test
 
             //Now expire it
             await _memDb.KeyExpireAsync("key1", DateTime.UtcNow.AddMilliseconds(20));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //Rename the key
             await _memDb.KeyRenameAsync("key1", "key2");

@@ -12,9 +12,17 @@ namespace StackRedis.L1.Test
 {
     public class UnitTestBase
     {
-        protected CallMonitoringRedisDatabase _redisDb;
+        protected IDatabase _redisDirectDb;
+        protected NotificationDatabase _otherClientDb;
         protected RedisL1Database _memDb;
-        
+
+        private CallMonitoringRedisDatabase _callMonMemDb;
+
+        protected int CallsByMemDb
+        {
+            get { return _callMonMemDb.Calls; }
+        }
+
         [TestInitialize]
         public void SetUp()
         {
@@ -24,22 +32,22 @@ namespace StackRedis.L1.Test
 
             ConnectionMultiplexer connection = ConnectionMultiplexer.Connect(options);
             var server = connection.GetServer(connection.GetEndPoints().First());
-            var database = connection.GetDatabase();
-
-            //Implemention of IDatabase that counts calls (so tests can tell which requests made it to the network)
-            _redisDb = new CallMonitoringRedisDatabase(database);
-
-            //Construct the in-memory cache
-            _memDb = new RedisL1Database(_redisDb);
-
             server.ConfigSet("notify-keyspace-events", "KEA");
 
+            _redisDirectDb = connection.GetDatabase();
+            
+            //Construct the in-memory cache using an Implemention of IDatabase that counts calls (so tests can tell which requests made it to the network)
+            _callMonMemDb = new CallMonitoringRedisDatabase(_redisDirectDb);
+            _memDb = new RedisL1Database(_callMonMemDb);
+
+            //Get a notification database to simulate another client
+            _otherClientDb = new NotificationDatabase(_redisDirectDb, "other client");
+            
             //Clean everything out
             server.FlushAllDatabases();
             _memDb.Flush();
 
-            //Reset the number of calls
-            _redisDb.Calls = 0;
+            _callMonMemDb.Calls = 0;
         }
 
         [TestCleanup]

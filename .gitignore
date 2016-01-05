@@ -1,6 +1,9 @@
 *.suo
+*.pdb
 packages/
 StackRedis.L1/bin/
 StackRedis.L1/obj/
 StackRedis.L1.Test/bin/
 StackRedis.L1.Test/obj/
+StackRedis.L1.Notifications/bin/
+StackRedis.L1.Notifications/obj/

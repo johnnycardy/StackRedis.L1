@@ -11,23 +11,50 @@ namespace StackRedis.L1.KeyspaceNotifications
     internal class NotificationListener : IDisposable
     {
         private static readonly string _keyspace = "__keyspace@0__:";
+        private static readonly string _keyspaceDetail = "__keyspace_detailed@0__:";
+
         private List<DatabaseInstanceData> _databases = new List<DatabaseInstanceData>();
         private ISubscriber _subscriber;
-
-        private FixedSizedQueue<KeyValuePair<string, string>> _notificationHistory = new FixedSizedQueue<KeyValuePair<string, string>>(5);
         
         internal bool Paused { get; set; }
 
-        internal NotificationListener(ConnectionMultiplexer connection, Func<string, bool> recentKeyCheck)
+        private string _currentMachineId = NotificationDatabase.GetMachineId();
+
+        internal NotificationListener(ConnectionMultiplexer connection)
         {
             _subscriber = connection.GetSubscriber();
+
+            //Listen for standard redis keyspace events
             _subscriber.Subscribe(_keyspace + "*", (channel, value) =>
             {
                 if (!Paused)
                 {
                     string key = ((string)channel).Replace(_keyspace, "");
+                    foreach (DatabaseInstanceData dbData in _databases)
+                    {
+                        HandleKeyspaceEvent(dbData, key, value);
+                    }
+                }
+            });
 
-                    HandleKeyspaceEvent(new KeyValuePair<string, string>(key, value), recentKeyCheck(key));
+            //Listen for advanced keyspace events
+            _subscriber.Subscribe(_keyspaceDetail + "*", (channel, value) =>
+            {
+                if (!Paused)
+                {
+                    string machine = ((string)value).Split(':').First();
+
+                    //Only listen to events caused by other redis clients
+                    if (machine != _currentMachineId)
+                    {
+                        string key = ((string)channel).Replace(_keyspaceDetail, "");
+
+                        string eventType = ((string)value).Substring(machine.Length + 1);
+                        foreach (DatabaseInstanceData dbData in _databases)
+                        {
+                            HandleKeyspaceDetailEvent(dbData, key, machine, eventType);
+                        }
+                    }
                 }
             });
         }
@@ -41,65 +68,62 @@ namespace StackRedis.L1.KeyspaceNotifications
         {
             _databases.Add(dbData);
         }
-
-        private void HandleKeyspaceEvent(KeyValuePair<string, string> kvp, bool isRecentlyAdded)
+        
+        private void HandleKeyspaceDetailEvent(DatabaseInstanceData dbData, string key, string machine, string eventType)
         {
-            foreach(DatabaseInstanceData dbData in _databases)
+            System.Diagnostics.Debug.WriteLine("Keyspace detail event. Key=" + key + ", Machine=" + machine + ", Event=" + eventType);
+
+            string eventName = eventType.Split(':').First();
+            string eventArg = "";
+            if(eventName.Length < eventType.Length)
             {
-                HandleKeyspaceEvent(dbData, kvp, isRecentlyAdded);
+                eventArg = eventType.Substring(eventName.Length + 1);
             }
 
-            //Store the event
-            _notificationHistory.Enqueue(kvp);
+            if(eventName == "hset")
+            {
+                dbData.MemoryHashes.Delete(key, new[] { (RedisValue)eventArg });
+            }
+            else if (eventName == "del")
+            {
+                //A key was removed
+                dbData.MemoryCache.Remove(new[] { key });
+            }
+            else if (eventName == "rename_key")
+            {
+                //the arg contains the new key
+                if (!string.IsNullOrEmpty(eventArg))
+                {
+                    dbData.MemoryCache.RenameKey(key, eventArg);
+                }
+            }
+            else if(eventName == "set" /* Setting a string */)
+            {
+                //A key has been set by another client. If it exists in memory, it is probably now outdated.
+                dbData.MemoryCache.Remove(new[] { key });
+            }
+            else if (eventName == "setbit" || eventName == "setrange" ||
+                    eventName == "incrby" || eventName == "incrbyfloat" ||
+                    eventName == "decrby" || eventName == "decrbyfloat" ||
+                    eventName == "append")
+            {
+                //Many string operations are not performed in-memory, so the key needs to be invalidated and we go back to redis for the result.
+                dbData.MemoryCache.Remove(new[] { key });
+            }
         }
 
         /// <summary>
         /// Reads the key/value and updates the database with the relevant value
         /// </summary>
-        private void HandleKeyspaceEvent(DatabaseInstanceData dbData, KeyValuePair<string,string> kvp, bool isRecentlyAddedOnThisServer)
+        private void HandleKeyspaceEvent(DatabaseInstanceData dbData, string key, string value)
         {
-            System.Diagnostics.Debug.WriteLine("Keyspace event. Key=" + kvp.Key + ", Value=" + kvp.Value);
-
-            //Handle DEL, RENAME and EXPIRE
-            if(kvp.Value == "del")
+            System.Diagnostics.Debug.WriteLine("Keyspace event. Key=" + key + ", Value=" + value);
+            if(value == "expired")
             {
-                dbData.MemoryCache.Remove(new[] { kvp.Key });
-            }
-            else if(kvp.Value == "rename_to")
-            {
-                //the previous event should be "rename_from" and contains the current key
-                if(_notificationHistory.Any() && _notificationHistory.Last().Value == "rename_from")
-                {
-                    dbData.MemoryCache.RenameKey(_notificationHistory.Last().Key, kvp.Key);
-                }
-            }
-            else if(kvp.Value == "expired")
-            {
-                dbData.MemoryCache.Remove(new[] { kvp.Key });
-                System.Diagnostics.Debug.WriteLine("Key expired and removed:" + kvp.Key);
-            }
-            else if(kvp.Value == "set")
-            {
-                if (isRecentlyAddedOnThisServer)
-                {
-                    //Now there has two values set from different servers within a very close timespan (see ObjMemCache.RecentKeyMilliseconds)
-                    //There are two scenarios:
-                    //1 - the notification is from this server, not another. We have the correct value in memory and shouldn't delete it.
-                    //2 - the notification is from another server. We have the incorrect value in memory and should delete it.
-                }
-                else
-                {
-                    //A key has been set. If it exists in memory, it is probably now outdated.
-                    dbData.MemoryCache.Remove(new[] { kvp.Key });
-                }
-            }
-            else if(kvp.Value == "setbit" || kvp.Value == "setrange" || 
-                    kvp.Value == "incrby" || kvp.Value == "incrbyfloat" ||
-                    kvp.Value == "decrby" || kvp.Value == "decrbyfloat" ||
-                    kvp.Value == "append")
-            {
-                //Memory cache does not currently calculate "setbit" results. So we always need to remove the key.
-                dbData.MemoryCache.Remove(new[] { kvp.Key });
+                //A key has expired. Sometimes the expiry is performed in-memory, so the key may have already been removed.
+                //It's also possible that the expiry is performed in redis and not in memory, so we listen for this event.
+                dbData.MemoryCache.Remove(new[] { key });
+                System.Diagnostics.Debug.WriteLine("Key expired and removed:" + key);
             }
         }
     }

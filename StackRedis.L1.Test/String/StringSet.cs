@@ -13,16 +13,15 @@ namespace StackRedis.L1.Test
         {
             _memDb.StringSet("key1", "value1");
 
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //remove key1 in Redis
-            _memDb.PauseKeyspaceNotifications();
-            _redisDb.KeyDelete("key1");
-            Assert.AreEqual(2, _redisDb.Calls);
+            _redisDirectDb.KeyDelete("key1");
+            Assert.AreEqual(1, CallsByMemDb);
 
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
         }
 
 
@@ -35,16 +34,16 @@ namespace StackRedis.L1.Test
                 new System.Collections.Generic.KeyValuePair<RedisKey, RedisValue>("key2", "value2"),
             });
 
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //remove key1 in Redis
-            _memDb.PauseKeyspaceNotifications();
-            _redisDb.KeyDelete("key1");
+            _redisDirectDb.KeyDelete("key1");
 
             //key1 should be mem cached
             var result = _memDb.StringGet(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual("value1", (string)result[0]);
             Assert.AreEqual("value2", (string)result[1]);
+            Assert.AreEqual(1, CallsByMemDb);
         }
 
 

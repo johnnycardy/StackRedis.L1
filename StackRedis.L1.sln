@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackRedis.L1", "StackRedis
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackRedis.L1.Test", "StackRedis.L1.Test\StackRedis.L1.Test.csproj", "{B6668C4C-6441-4858-B6BA-9890CBC95C61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackRedis.L1.Notifications", "StackRedis.L1.Notifications\StackRedis.L1.Notifications.csproj", "{6B148145-7C3E-41DF-BEEA-57E108513EFE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B6668C4C-6441-4858-B6BA-9890CBC95C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6668C4C-6441-4858-B6BA-9890CBC95C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6668C4C-6441-4858-B6BA-9890CBC95C61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B148145-7C3E-41DF-BEEA-57E108513EFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B148145-7C3E-41DF-BEEA-57E108513EFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B148145-7C3E-41DF-BEEA-57E108513EFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B148145-7C3E-41DF-BEEA-57E108513EFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

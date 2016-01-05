@@ -13,16 +13,11 @@ namespace StackRedis.L1.Test
         public async Task StringSetAsync_ThenGet()
         {
             await _memDb.StringSetAsync("key1", "value1");
-            Assert.AreEqual(1, _redisDb.Calls);
-
-            //remove key1 in Redis
-            _memDb.PauseKeyspaceNotifications();
-            await _redisDb.KeyDeleteAsync("key1");
-            Assert.AreEqual(2, _redisDb.Calls);
-
+            Assert.AreEqual(1, CallsByMemDb);
+            
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)(await _memDb.StringGetAsync("key1")));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
         }
 
 
@@ -35,11 +30,10 @@ namespace StackRedis.L1.Test
                 new System.Collections.Generic.KeyValuePair<RedisKey, RedisValue>("key2", "value2"),
             });
 
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //remove key1 in redis only - not in memory
-            _memDb.PauseKeyspaceNotifications(true);
-            await _redisDb.KeyDeleteAsync("key1");
+            await _redisDirectDb.KeyDeleteAsync("key1");
 
             //key1 should be mem cached
             var result = await _memDb.StringGetAsync(new RedisKey[] { "key1", "key2" });

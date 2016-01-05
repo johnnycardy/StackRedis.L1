@@ -15,35 +15,35 @@ namespace StackRedis.L1.Test
             Assert.IsFalse(_memDb.KeyExists("key1"));
 
             //It will have gone to redis to check
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Try again - it will have go to redis to check again
             Assert.IsFalse(_memDb.KeyExists("key1"));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
         }
 
         [TestMethod]
         public void KeyExists_True_StringAdd()
         {
             Assert.IsFalse(_memDb.KeyExists("key1"));
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringSet("key1", "value1");
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //We should be able to tell that it exists without going to redis
             Assert.IsTrue(_memDb.KeyExists("key1"));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
         }
 
         [TestMethod]
         public void KeyExists_False_KeyDelete()
         {
             _memDb.StringSet("key1", "value1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             Assert.IsTrue(_memDb.KeyExists("key1"));
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Now delete it
             _memDb.KeyDelete("key1");

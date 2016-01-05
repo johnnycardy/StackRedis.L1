@@ -20,7 +20,7 @@ namespace StackRedis.L1.Test
 
             //Now expire it
             _memDb.KeyExpire("key1", DateTime.UtcNow.AddMilliseconds(10));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //Wait the 10 milliseconds for expiry
             await Task.Delay(15);
@@ -56,7 +56,7 @@ namespace StackRedis.L1.Test
 
             //Now expire it
             _memDb.KeyExpire("key1", TimeSpan.FromMilliseconds(10));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //Wait the 10 milliseconds for expiry
             await Task.Delay(15);

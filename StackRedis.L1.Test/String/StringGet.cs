@@ -12,26 +12,26 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringGet_Simple()
         {
-            _redisDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
-            Assert.AreEqual(2, _redisDb.Calls); //no extra call is made to redis
+            Assert.AreEqual(1, CallsByMemDb); //no extra call is made to redis
         }
 
         [TestMethod]
         public async Task StringGet_StringChangedInRedis()
         {
             //Set it and retrieve it into memory
-            _redisDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
 
             await Task.Delay(1200);
 
             //Now change it in redis
-            _redisDb.StringSet("key1", "value2");
+            _otherClientDb.StringSet("key1", "value2");
 
             //Wait for it to propagate and re-retrieve
             await Task.Delay(50);
@@ -41,36 +41,31 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringGet_Simple_Multi_BothValuesCached()
         {
-            _redisDb.StringSet("key1", "value1");
-            _redisDb.StringSet("key2", "value2");
+            _redisDirectDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key2", "value2");
             var values = _memDb.StringGet(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual("value1", (string)values[0]);
             Assert.AreEqual("value2", (string)values[1]);
-            Assert.AreEqual(3, _redisDb.Calls);
-
-            //Remove keys
-            _redisDb.KeyDelete(new RedisKey[] { "key1", "key2" });
-            Assert.AreEqual(4, _redisDb.Calls);
-
+            Assert.AreEqual(1, CallsByMemDb);
+            
             //Original values should be cached without further calls to redis
             values = _memDb.StringGet(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual("value1", (string)values[0]);
             Assert.AreEqual("value2", (string)values[1]);
-            Assert.AreEqual(4, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
         }
 
         [TestMethod]
         public void StringGet_Simple_Multi_OneValueCached()
         {
-            _redisDb.StringSet("key1", "value1");
-            _redisDb.StringSet("key2", "value2");
+            _redisDirectDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key2", "value2");
             var values = _memDb.StringGet(new RedisKey[] { "key1" });
             Assert.AreEqual("value1", (string)values[0]);
 
             //only key 2 should need to be retrieved this time. We prove by removing key1 from redis only - not memory
-            _memDb.PauseKeyspaceNotifications(true);
-            _redisDb.KeyDelete("key1");
-            _redisDb.StringSet("key2", "value2");
+            _redisDirectDb.KeyDelete("key1");
+            _redisDirectDb.StringSet("key2", "value2");
 
             //key1 should be cached, key2 should be retrieved
             values = _memDb.StringGet(new RedisKey[] { "key1", "key2" });
@@ -82,21 +77,21 @@ namespace StackRedis.L1.Test
         public async Task StringGet_WithExpiry()
         {
             //Set in redis with an expiry
-            _redisDb.StringSet("key_exp", "value1", TimeSpan.FromMilliseconds(30));
+            _otherClientDb.StringSet("key_exp", "value1", TimeSpan.FromMilliseconds(30));
 
             //Pull into memory
             Assert.AreEqual("value1", (string)_memDb.StringGet("key_exp"));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Test that it's set in mem
             Assert.AreEqual("value1", (string)_memDb.StringGet("key_exp"));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             await Task.Delay(200);
 
             //Get it again - should go back to redis, where it's now not set since it's expired
             Assert.IsFalse(_memDb.StringGet("key_exp").HasValue);
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
         }
     }
 }

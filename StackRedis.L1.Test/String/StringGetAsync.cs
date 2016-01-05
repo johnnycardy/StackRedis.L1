@@ -12,49 +12,43 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringGetAsync_Simple()
         {
-            _redisDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)(await _memDb.StringGetAsync("key1")));
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)(await _memDb.StringGetAsync("key1")));
-            Assert.AreEqual(2, _redisDb.Calls); //no extra call is made to redis
+            Assert.AreEqual(1, CallsByMemDb); //no extra call is made to redis
         }
 
         [TestMethod]
         public async Task StringGetAsync_Simple_Multi_BothValuesCached()
         {
-            _redisDb.StringSet("key1", "value1");
-            _redisDb.StringSet("key2", "value2");
+            _redisDirectDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key2", "value2");
             var values = await _memDb.StringGetAsync(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual("value1", (string)values[0]);
             Assert.AreEqual("value2", (string)values[1]);
-            Assert.AreEqual(3, _redisDb.Calls);
-
-            //Remove keys from redis only, not from memory
-            _memDb.PauseKeyspaceNotifications(true);
-            _redisDb.KeyDelete(new RedisKey[] { "key1", "key2" });
-            Assert.AreEqual(4, _redisDb.Calls);
-
+            Assert.AreEqual(1, CallsByMemDb);
+            
             //Original values should be cached without further calls to redis
             values = await _memDb.StringGetAsync(new RedisKey[] { "key1", "key2" });
             Assert.AreEqual("value1", (string)values[0]);
             Assert.AreEqual("value2", (string)values[1]);
-            Assert.AreEqual(4, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
         }
 
         [TestMethod]
         public async Task StringGetAsync_Simple_Multi_OneValueCached()
         {
-            await _redisDb.StringSetAsync("key1", "value1");
-            await _redisDb.StringSetAsync("key2", "value2");
+            await _redisDirectDb.StringSetAsync("key1", "value1");
+            await _redisDirectDb.StringSetAsync("key2", "value2");
             var values = await _memDb.StringGetAsync(new RedisKey[] { "key1" });
             Assert.AreEqual("value1", (string)values[0]);
 
             //only key 2 should need to be retrieved this time. We prove by removing key1 from redis and not memory
-            _memDb.PauseKeyspaceNotifications(true);
-            _redisDb.KeyDelete("key1");
-            await _redisDb.StringSetAsync("key2", "value2");
+            _redisDirectDb.KeyDelete("key1");
+            await _redisDirectDb.StringSetAsync("key2", "value2");
 
             //key1 should be cached, key2 should be retrieved
             values = await _memDb.StringGetAsync(new RedisKey[] { "key1", "key2" });

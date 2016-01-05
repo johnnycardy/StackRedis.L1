@@ -13,11 +13,11 @@ namespace StackRedis.L1.Test
         public async Task Keyspace_del_KeyRemoved()
         {
             //Create a key
-            _redisDb.StringSet("key1", "value1");
+            _redisDirectDb.StringSet("key1", "value1");
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
 
             //Delete it in Redis
-            _redisDb.KeyDelete("key1");
+            _otherClientDb.KeyDelete("key1");
 
             //Wait 100ms for it to take effect
             await Task.Delay(100);

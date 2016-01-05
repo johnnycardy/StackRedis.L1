@@ -15,17 +15,17 @@ namespace StackRedis.L1.Test.String
         public void StringGetSet_KeyPresent()
         {
             //Set up a string
-            _redisDb.StringSet("key1", "value1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            _redisDirectDb.StringSet("key1", "value1");
+            Assert.AreEqual(0, CallsByMemDb);
             
             //StringGetSet always goes to redis to do the set part
             RedisValue result = _memDb.StringGetSet("key1", "value2");
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
             Assert.AreEqual("value1", (string)result);
 
             //Should not need to go to redis this time
             result = _memDb.StringGet("key1");
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
             Assert.AreEqual("value2", (string)result);
         }
 
@@ -34,12 +34,12 @@ namespace StackRedis.L1.Test.String
         {
             //StringGetSet always goes to redis to do the set part
             RedisValue result = _memDb.StringGetSet("key1", "value2");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
             Assert.IsFalse(result.HasValue);
 
             //Should not need to go to redis this time
             result = _memDb.StringGet("key1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
             Assert.AreEqual("value2", (string)result);
         }
     }

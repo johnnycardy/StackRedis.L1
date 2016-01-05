@@ -15,6 +15,61 @@ namespace StackRedis.L1.MemoryCache.Types
             _objMemCache = objMemCache;
         }
 
+        internal async Task<RedisValue> Get(string hashKey, RedisValue key, Func<RedisValue, Task<RedisValue>> retrieval)
+        {
+            return (await GetMulti(hashKey, new RedisValue[] { key }, async (keys) =>
+            {
+                RedisValue result = await retrieval(hashKey);
+                return new[] { result };
+            })).Single();
+        }
+
+        internal async Task<RedisValue[]> GetMulti(string hashKey, RedisValue[] keys, Func<RedisValue[], Task<RedisValue[]>> retrieval)
+        {
+            if (!keys.Any())
+                return new RedisValue[0];
+
+            //Get the in-memory hash
+            var hash = GetHash(hashKey);
+            if (hash == null)
+                hash = SetHash(hashKey);
+
+            RedisValue[] result = new RedisValue[keys.Length];
+            List<int> nonCachedIndices = new List<int>();
+
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (hash.ContainsKey(keys[i]))
+                {
+                    result[i] = hash[keys[i]];
+                }
+                else
+                {
+                    nonCachedIndices.Add(i);
+                }
+            }
+
+            //Get all non cached indices from redis and place them in their correct positions for the result array
+            if (nonCachedIndices.Any())
+            {
+                RedisValue[] nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
+                RedisValue[] redisResults = await retrieval(nonCachedKeys);
+                if (redisResults != null)
+                {
+                    int i = 0;
+                    foreach (var redisResult in redisResults)
+                    {
+                        int originalIndex = nonCachedIndices[i++];
+                        result[originalIndex] = redisResult;
+
+                        //Cache this key for next time
+                        hash.Add(keys[originalIndex], redisResult);
+                    }
+                }
+            }
+
+            return result;
+        }  
 
         internal bool Contains(string hashKey, string key)
         {
@@ -36,18 +91,32 @@ namespace StackRedis.L1.MemoryCache.Types
             return new RedisValue();
         }
         
-        internal void Set(string hashKey, string key, RedisValue value)
+        internal long Set(string hashKey, HashEntry[] hashEntries, When when = When.Always)
         {
+            long result = 0;
             var hash = GetHash(hashKey);
             if (hash == null)
-                hash = SetHash(hashKey, null, When.Always);
+                hash = SetHash(hashKey);
+            
+            foreach (HashEntry entry in hashEntries)
+            {
+                if (when ==  When.Always || (hash.ContainsKey(entry.Name) && when == When.Exists))
+                {
+                    hash.Remove(entry.Name);
 
-            //Remove it if it already is there
-            if (hash.ContainsKey(key))
-                hash.Remove(key);
+                    //Add the key
+                    hash.Add(entry.Name, entry.Value);
+                    result++;
+                }
+                else if(!hash.ContainsKey(entry.Name) && when == When.NotExists)
+                {
+                    //Add the key
+                    hash.Add(entry.Name, entry.Value);
+                    result++;
+                }
+            }
 
-            //Add the key
-            hash.Add(key, value);
+            return result;
         }
 
         internal long Delete(string hashKey, RedisValue[] keys)
@@ -65,10 +134,11 @@ namespace StackRedis.L1.MemoryCache.Types
             return result;
         }
 
-        private Dictionary<string,RedisValue> SetHash(string hashKey, TimeSpan? timeout, When when)
+        private Dictionary<string,RedisValue> SetHash(string hashKey)
         {
-            _objMemCache.Add(hashKey, new Dictionary<string, RedisValue>(), timeout, when);
-            return _objMemCache.Get<Dictionary<string, RedisValue>>(hashKey).Value;
+            var hash = new Dictionary<string, RedisValue>();
+            _objMemCache.Add(hashKey, hash, null, When.Always);
+            return hash;
         }
 
         private Dictionary<string,RedisValue> GetHash(string hashKey)

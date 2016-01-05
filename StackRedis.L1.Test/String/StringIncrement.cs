@@ -12,17 +12,15 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringIncrement_Double_Simple()
         {
-            _memDb.PauseKeyspaceNotifications();
-
             _memDb.StringSet("key", "1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringIncrement("key", 1.5);
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //It should go back to redis to re-request the string
             string result = _memDb.StringGet("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(3, CallsByMemDb);
             Assert.AreEqual(result, "2.5");
         }
 
@@ -31,51 +29,46 @@ namespace StackRedis.L1.Test
         public async Task StringIncrement_Double_InRedis_Notification()
         {
             _memDb.StringSet("key", "1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
-            _redisDb.StringIncrement("key", 1.5);
-            Assert.AreEqual(2, _redisDb.Calls);
+            _otherClientDb.StringIncrement("key", 1.5);
 
             //Give it a moment to propagate
             await Task.Delay(50);
 
             //It should go back to redis to re-request the string
             string result = _memDb.StringGet("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
             Assert.AreEqual(result, "2.5");
         }
 
         [TestMethod]
         public async Task StringIncrementAsync_Double_Simple()
         {
-            _memDb.PauseKeyspaceNotifications();
-
             await _memDb.StringSetAsync("key", "1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringIncrementAsync("key", 1.5);
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //It should go back to redis to re-request the string
             string result = await _memDb.StringGetAsync("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(3, CallsByMemDb);
             Assert.AreEqual(result, "2.5");
         }
 
         [TestMethod]
         public void StringIncrement_Long_Simple()
         {
-            _memDb.PauseKeyspaceNotifications();
-
             _memDb.StringSet("key", "1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringIncrement("key", 2);
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //It should go back to redis to re-request the string
             string result = _memDb.StringGet("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(3, CallsByMemDb);
             Assert.AreEqual(result, "3");
         }
 
@@ -84,34 +77,32 @@ namespace StackRedis.L1.Test
         public async Task StringIncrement_Long_InRedis_Notification()
         {
             _memDb.StringSet("key", "1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
-            _redisDb.StringIncrement("key", 2);
-            Assert.AreEqual(2, _redisDb.Calls);
+            _otherClientDb.StringIncrement("key", 2);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Give it a moment to propagate
             await Task.Delay(50);
 
             //It should go back to redis to re-request the string
             string result = _memDb.StringGet("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
             Assert.AreEqual(result, "3");
         }
 
         [TestMethod]
         public async Task StringIncrementAsync_Long_Simple()
         {
-            _memDb.PauseKeyspaceNotifications();
-
             await _memDb.StringSetAsync("key", "1");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringIncrementAsync("key", 2);
-            Assert.AreEqual(2, _redisDb.Calls);
+            Assert.AreEqual(2, CallsByMemDb);
 
             //It should go back to redis to re-request the string
             string result = await _memDb.StringGetAsync("key");
-            Assert.AreEqual(3, _redisDb.Calls);
+            Assert.AreEqual(3, CallsByMemDb);
             Assert.AreEqual(result, "3");
         }
     }

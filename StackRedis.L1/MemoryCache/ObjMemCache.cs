@@ -14,19 +14,7 @@ namespace StackRedis.L1.MemoryCache
 
         //object storage
         private System.Runtime.Caching.MemoryCache _cache;
-
-        //recent key storage
-        private System.Runtime.Caching.MemoryCache _recentKeys;
-
-        /// <summary>
-        /// This is the length of time for which a key is considered 'recent'.
-        /// It's the length of time we can be fairly certain that a keyspace notification will be delivered between servers.
-        ///     (If notifications take longer than this amount of time, it will affect in-memory cache performance, but not integrity)
-        /// If two in-memory instances are used to update the same value within this timespan, then one will store an out-of-date value,
-        /// and this is the currently accepted risk of the in-memory cache.
-        /// </summary>
-        internal static readonly int RecentKeyMilliseconds = 1000;
-
+        
         //When you add an item to MemoryCache with a specific TTL, you can't retrieve it again.
         //So, we store them separately.
         private Dictionary<string, DateTimeOffset?> _ttls = new Dictionary<string, DateTimeOffset?>();
@@ -34,11 +22,6 @@ namespace StackRedis.L1.MemoryCache
         internal ObjMemCache()
         {
             Flush();
-        }
-
-        public bool IsRecentKey(string key)
-        {
-            return _recentKeys.Contains(key);
         }
         
         public bool ContainsKey(string key)
@@ -71,10 +54,7 @@ namespace StackRedis.L1.MemoryCache
                 }
 
                 _cache.Remove(key);
-
-                //Store the key as a recent key temporarily
-                _recentKeys.Add(key, new object(), new DateTimeOffset(DateTime.UtcNow.AddSeconds(1)));
-
+                
                 CacheItemPolicy policy = new CacheItemPolicy();
 
                 if (expiry.HasValue && expiry.Value != default(TimeSpan))
@@ -180,9 +160,6 @@ namespace StackRedis.L1.MemoryCache
                     var value = _cache.Get(keyFrom);
                     _cache.Remove(keyFrom);
                     
-                    if (_recentKeys.Contains(keyFrom))
-                        _recentKeys.Remove(keyFrom);
-                    
                     //Get the existing TTL
                     TimeSpan? ttl = null;
                     if(_ttls.ContainsKey(keyFrom))
@@ -216,10 +193,7 @@ namespace StackRedis.L1.MemoryCache
                     {
                         System.Diagnostics.Debug.WriteLine("Removing key from memcache: " + key);
                         _cache.Remove(key);
-
-                        if (_recentKeys.Contains(key))
-                            _recentKeys.Remove(key);
-
+                        
                         if (_ttls.ContainsKey(key))
                         {
                             _ttls.Remove(key);
@@ -246,14 +220,12 @@ namespace StackRedis.L1.MemoryCache
                 }
 
                 _cache = new System.Runtime.Caching.MemoryCache("stackredis.l1.objmemcache");
-                _recentKeys = new System.Runtime.Caching.MemoryCache("stackredis.l1.recentkeycache");
             }
         }
 
         public void Dispose()
         {
             _cache.Dispose();
-            _recentKeys.Dispose();
         }
     }
 }

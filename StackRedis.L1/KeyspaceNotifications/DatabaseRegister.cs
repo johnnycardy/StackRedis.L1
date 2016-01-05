@@ -82,7 +82,7 @@ namespace StackRedis.L1.KeyspaceNotifications
             //If we have access to a redis instance, then listen to it for notifications
             if (redisDb != null)
             {
-                Listener = new NotificationListener(redisDb.Multiplexer, key => MemoryCache.IsRecentKey(key));
+                Listener = new NotificationListener(redisDb.Multiplexer);
 
                 //Connect the memory cache to the listener. Its data will be updated when keyspace events occur.
                 Listener.HandleKeyspaceEvents(this);

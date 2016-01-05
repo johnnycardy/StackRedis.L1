@@ -13,32 +13,34 @@ namespace StackRedis.L1.Test
         public async Task StringLengthAsync_Simple()
         {
             await _memDb.StringSetAsync("key", "value");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //length should be retrievable from cache
             Assert.AreEqual(5, (int)(await _memDb.StringLengthAsync("key")));
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
         }
         
         [TestMethod]
         public async Task StringLengthAsync_StringChangedInRedis()
         {
             await _memDb.StringSetAsync("key", "value");
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
             //Get the length from the cache
             Assert.AreEqual(5, (int)(await _memDb.StringLengthAsync("key")));
-            Assert.AreEqual(1, _redisDb.Calls);
+            Assert.AreEqual(1, CallsByMemDb);
 
-            await Task.Delay(1200);
+            await Task.Delay(50);
 
             //Change the string in redis
-            await _redisDb.StringSetAsync("key", "longer value");
+            await _otherClientDb.StringSetAsync("key", "longer value");
 
             await Task.Delay(30); //Wait for the keyspace notification to remove the string
 
             //Length should be changed
             Assert.AreEqual(12, (int)(await _memDb.StringLengthAsync("key")));
+            Assert.AreEqual(2, CallsByMemDb);
+
         }
     }
 }
