@@ -101,29 +101,25 @@ namespace StackRedis.L1
 
         public double HashDecrement(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hdecrbyfloat:" + hashField);
             return _redisDb.HashDecrement(key, hashField, value, flags);
         }
 
         public long HashDecrement(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hdecr:" + hashField);
             return _redisDb.HashDecrement(key, hashField, value, flags);
         }
 
         public Task<double> HashDecrementAsync(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hdecrbyfloat:" + hashField);
             return _redisDb.HashDecrementAsync(key, hashField, value, flags);
         }
 
         public Task<long> HashDecrementAsync(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hdecr:" + hashField);
             return _redisDb.HashDecrementAsync(key, hashField, value, flags);
         }
 
@@ -218,29 +214,25 @@ namespace StackRedis.L1
 
         public double HashIncrement(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hincrbyfloat:" + hashField);
             return _redisDb.HashIncrement(key, hashField, value, flags);
         }
 
         public long HashIncrement(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hincr:" + hashField);
             return _redisDb.HashIncrement(key, hashField, value, flags);
         }
 
         public Task<double> HashIncrementAsync(RedisKey key, RedisValue hashField, double value, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hincrbyfloat:" + hashField);
             return _redisDb.HashIncrementAsync(key, hashField, value, flags);
         }
 
         public Task<long> HashIncrementAsync(RedisKey key, RedisValue hashField, long value = 1, CommandFlags flags = CommandFlags.None)
         {
-
-
+            this.PublishEvent(key, "hincr:" + hashField);
             return _redisDb.HashIncrementAsync(key, hashField, value, flags);
         }
 

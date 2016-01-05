@@ -287,24 +287,28 @@ namespace StackRedis.L1
 
         public RedisValue[] HashKeys(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
+            //can't do much in memory
             if (_redisDb == null) throw new NotImplementedException();
             return _redisDb.HashKeys(key, flags);
         }
 
         public Task<RedisValue[]> HashKeysAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
+            //can't do much in memory
             if (_redisDb == null) throw new NotImplementedException();
             return _redisDb.HashKeysAsync(key, flags);
         }
 
         public long HashLength(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
+            //can't do much in memory
             if (_redisDb == null) throw new NotImplementedException();
             return _redisDb.HashLength(key, flags);
         }
 
         public Task<long> HashLengthAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
+            //can't do much in memory
             if (_redisDb == null) throw new NotImplementedException();
             return _redisDb.HashLengthAsync(key, flags);
         }

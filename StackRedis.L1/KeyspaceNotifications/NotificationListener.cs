@@ -80,8 +80,11 @@ namespace StackRedis.L1.KeyspaceNotifications
                 eventArg = eventType.Substring(eventName.Length + 1);
             }
 
-            if (eventName == "hset" || eventName == "hdel")
+            if (eventName == "hset" || eventName == "hdel" || 
+                eventName == "hincr" || eventName == "hincrbyfloat"|| 
+                eventName == "hdecr" || eventName == "hdecrbyfloat")
             {
+                //eventArg is the hash entry name. Since it has changed, remove it.
                 dbData.MemoryHashes.Delete(key, new[] { (RedisValue)eventArg });
             }
             else if (eventName == "del")
