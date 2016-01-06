@@ -91,6 +91,18 @@ namespace StackRedis.L1.MemoryCache
             return new ValOrRefNullable<T>();
         }
 
+        /// <summary>
+        /// Removes the stored TTL. Note that the key will still expire after the same timespan, it just won't be returned.
+        /// To properly update the TTL, call Expire.
+        /// </summary>
+        internal void ClearTimeToLive(RedisKey key)
+        {
+            if(_ttls.ContainsKey(key))
+            {
+                _ttls.Remove(key);
+            }
+        }
+
         public ValOrRefNullable<TimeSpan?> GetExpiry(string key)
         {
             if(_ttls.ContainsKey(key))

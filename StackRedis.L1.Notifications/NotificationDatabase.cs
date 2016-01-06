@@ -480,26 +480,25 @@ namespace StackRedis.L1
 
         public bool KeyExpire(RedisKey key, DateTime? expiry, CommandFlags flags = CommandFlags.None)
         {
-            
+            PublishEvent(key, "expire");
             return _redisDb.KeyExpire(key, expiry, flags);
         }
 
         public bool KeyExpire(RedisKey key, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
         {
-            
+            PublishEvent(key, "expire");
             return _redisDb.KeyExpire(key, expiry, flags);
-
         }
 
         public Task<bool> KeyExpireAsync(RedisKey key, DateTime? expiry, CommandFlags flags = CommandFlags.None)
         {
-            
+            PublishEvent(key, "expire");
             return _redisDb.KeyExpireAsync(key, expiry, flags);
         }
 
         public Task<bool> KeyExpireAsync(RedisKey key, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
         {
-            
+            PublishEvent(key, "expire");
             return _redisDb.KeyExpireAsync(key, expiry, flags);
 
         }

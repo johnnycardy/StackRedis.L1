@@ -748,21 +748,47 @@ namespace StackRedis.L1
 
             return _redisDb.KeyRestoreAsync(key, value, expiry, flags);
         }
-
+        
         public TimeSpan? KeyTimeToLive(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.KeyTimeToLive(key, flags);
+            var ttlStored = _dbData.MemoryCache.GetExpiry(key);
+            if (ttlStored.HasValue && ttlStored.Value.HasValue)
+            {
+                return ttlStored.Value;
+            }
+            else
+            {
+                TimeSpan? ttl = _redisDb.KeyTimeToLive(key, flags);
+
+                //Update the in-memory expiry
+                _dbData.MemoryCache.Expire(key, ttl);
+
+                return ttl;
+            }
         }
 
-        public Task<TimeSpan?> KeyTimeToLiveAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
+        public async Task<TimeSpan?> KeyTimeToLiveAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.KeyTimeToLiveAsync(key, flags);
+            var ttlStored = _dbData.MemoryCache.GetExpiry(key);
+            if (ttlStored.HasValue)
+            {
+                return ttlStored.Value;
+            }
+            else
+            {
+                TimeSpan? ttl = await _redisDb.KeyTimeToLiveAsync(key, flags);
+
+                //Update the in-memory expiry
+                _dbData.MemoryCache.Expire(key, ttl);
+
+                return ttl;
+            }
         }
 
         public RedisType KeyType(RedisKey key, CommandFlags flags = CommandFlags.None)
