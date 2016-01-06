@@ -11,7 +11,7 @@ Network latency is your primary bottleneck when talking to Redis. Usually this i
 
 ### What about multiple clients?
 
-If you have multiple clients all talking to Redis, then each one can still use this cache layer without the risk of stale data. This is achieved by invalidating data appropriately in the background by using [Redis keyspace notifications](http://redis.io/topics/notifications).
+If you have multiple clients all talking to Redis, then each one can still use this cache layer without the risk of stale data. This is achieved by invalidating data appropriately in the background by using a combination of [Redis keyspace notifications](http://redis.io/topics/notifications) and custom pub/sub channels.
 
 ### Usage
 
@@ -26,13 +26,8 @@ If you wish to clear your in-memory state, simply `Dispose` it and re-create it.
 
 ### Project State
 
-It's early days... at the moment, most calls involving the `String` type are accelerated, but nothing else. Unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up StringGet but won't affect other parts of IDatabase.
+The `String` and `Hash` types are accelerated. Other types will follow eventually, but unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up `StringGet`, `HashGet` etc but won't affect other parts of IDatabase.
 
 ### Limitations
 
-There is currently a trade-off between performance and data integrity in a specific scenario. When two instances of this in-memory cache are connected to the same Redis database, and update the same key within a configurable timespan (currently 1s), then one of the servers will be left with an out-of-date value.
-
-This is remediated by one or more of the following methods:
- - Decide whether it's a risk: in your scenario, you may be doing frequent reads and infrequent writes. This is when the in-memory solution is most effective, and also renders the out-of-date value problem unlikely.
- - Key timeouts will expire the invalid value within a known time.
- - A subsequent update will overwrite the invalid key.
+If you use this library for one Redis client, you must use it for all clients of that database. This is because Redis keyspace notifications alone are not enough to accelerate the Hash type; custom messages are required. If you use this library to accelerate only one client, then that client risks holding on to stale data when other non-accelerated clients expire or delete keys.
