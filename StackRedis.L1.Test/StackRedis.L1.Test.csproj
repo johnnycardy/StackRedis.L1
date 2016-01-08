@@ -78,6 +78,13 @@
     <Compile Include="Keys\KeyRename.cs" />
     <Compile Include="Keys\KeyTimeToLive.cs" />
     <Compile Include="NoRedis\NoRedisTests.cs" />
+    <Compile Include="Set\SetAdd.cs" />
+    <Compile Include="Set\SetContains.cs" />
+    <Compile Include="Set\SetMove.cs" />
+    <Compile Include="Set\SetPop.cs" />
+    <Compile Include="Set\SetRandomMember.cs" />
+    <Compile Include="Set\SetRemove.cs" />
+    <Compile Include="Set\SetScan.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

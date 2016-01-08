@@ -51,6 +51,7 @@
     <Compile Include="KeyspaceNotifications\NotificationListener.cs" />
     <Compile Include="MemoryCache\ObjMemCache.cs" />
     <Compile Include="MemoryCache\Types\MemoryHashes.cs" />
+    <Compile Include="MemoryCache\Types\MemorySets.cs" />
     <Compile Include="MemoryCache\Types\MemoryStrings.cs" />
     <Compile Include="MemoryCache\ValOrRefNullable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

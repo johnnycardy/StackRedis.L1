@@ -1219,38 +1219,50 @@ namespace StackRedis.L1
 
         public bool SetMove(RedisKey source, RedisKey destination, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
-            return _redisDb.SetMove(source, destination, value, flags);
+            if(_redisDb.SetMove(source, destination, value, flags))
+            {
+                PublishEvent(source, "srem:" + value);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        public Task<bool> SetMoveAsync(RedisKey source, RedisKey destination, RedisValue value, CommandFlags flags = CommandFlags.None)
+        public async Task<bool> SetMoveAsync(RedisKey source, RedisKey destination, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
-            return _redisDb.SetMoveAsync(source, destination, value, flags);
+            if (await _redisDb.SetMoveAsync(source, destination, value, flags))
+            {
+                PublishEvent(source, "srem:" + value);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public RedisValue SetPop(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            
+            RedisValue result = _redisDb.SetPop(key, flags);
+            if(!result.IsNull)
+            {
+                PublishEvent(key, "srem:" + result);
+            }
 
-
-
-            return _redisDb.SetPop(key, flags);
+            return result;
         }
 
-        public Task<RedisValue> SetPopAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
+        public async Task<RedisValue> SetPopAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            
+            RedisValue result = await _redisDb.SetPopAsync(key, flags);
+            if (!result.IsNull)
+            {
+                PublishEvent(key, "srem:" + result);
+            }
 
-
-
-            return _redisDb.SetPopAsync(key, flags);
+            return result;
         }
 
         public RedisValue SetRandomMember(RedisKey key, CommandFlags flags = CommandFlags.None)
@@ -1291,37 +1303,29 @@ namespace StackRedis.L1
 
         public long SetRemove(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
+            foreach (RedisValue value in values)
+                PublishEvent(key, "srem:" + value);
 
             return _redisDb.SetRemove(key, values, flags);
         }
 
         public bool SetRemove(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
+            PublishEvent(key, "srem:" + value);
             return _redisDb.SetRemove(key, value, flags);
         }
 
         public Task<long> SetRemoveAsync(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
+            foreach(RedisValue value in values)
+                PublishEvent(key, "srem:" + value);
 
             return _redisDb.SetRemoveAsync(key, values, flags);
         }
 
         public Task<bool> SetRemoveAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
+            PublishEvent(key, "srem:" + value);
             return _redisDb.SetRemoveAsync(key, value, flags);
         }
 

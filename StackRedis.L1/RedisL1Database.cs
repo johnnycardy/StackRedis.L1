@@ -1209,38 +1209,47 @@ namespace StackRedis.L1
 
         public long SetAdd(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long result = _dbData.MemorySets.Add(key, values);
 
-            return _redisDb.SetAdd(key, values, flags);
+            if (_redisDb != null)
+                return _redisDb.SetAdd(key, values, flags);
+            else
+                return result;
         }
 
         public bool SetAdd(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            bool result = _dbData.MemorySets.Add(key, new[] { value }) > 0;
 
-            return _redisDb.SetAdd(key, value, flags);
+            if (_redisDb != null)
+                return _redisDb.SetAdd(key, value, flags);
+            else
+                return result;
         }
 
         public Task<long> SetAddAsync(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long result = _dbData.MemorySets.Add(key, values);
 
-            return _redisDb.SetAddAsync(key, values, flags);
+            if (_redisDb != null)
+                return _redisDb.SetAddAsync(key, values, flags);
+            else
+                return Task.FromResult(result);
         }
 
         public Task<bool> SetAddAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            bool result = _dbData.MemorySets.Add(key, new[] { value }) > 0;
 
-            return _redisDb.SetAddAsync(key, value, flags);
+            if (_redisDb != null)
+                return _redisDb.SetAddAsync(key, value, flags);
+            else
+                return Task.FromResult(result);
         }
 
         public RedisValue[] SetCombine(SetOperation operation, RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1249,6 +1258,7 @@ namespace StackRedis.L1
 
         public RedisValue[] SetCombine(SetOperation operation, RedisKey first, RedisKey second, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1257,6 +1267,7 @@ namespace StackRedis.L1
 
         public long SetCombineAndStore(SetOperation operation, RedisKey destination, RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1265,6 +1276,7 @@ namespace StackRedis.L1
 
         public long SetCombineAndStore(SetOperation operation, RedisKey destination, RedisKey first, RedisKey second, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1273,6 +1285,7 @@ namespace StackRedis.L1
 
         public Task<long> SetCombineAndStoreAsync(SetOperation operation, RedisKey destination, RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1281,6 +1294,7 @@ namespace StackRedis.L1
 
         public Task<long> SetCombineAndStoreAsync(SetOperation operation, RedisKey destination, RedisKey first, RedisKey second, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1289,6 +1303,7 @@ namespace StackRedis.L1
 
         public Task<RedisValue[]> SetCombineAsync(SetOperation operation, RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1297,6 +1312,7 @@ namespace StackRedis.L1
 
         public Task<RedisValue[]> SetCombineAsync(SetOperation operation, RedisKey first, RedisKey second, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1305,22 +1321,27 @@ namespace StackRedis.L1
 
         public bool SetContains(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.SetContains(key, value, flags);
+            if (_dbData.MemorySets.Contains(key, value))
+                return true;
+            else if (_redisDb != null)
+                return _redisDb.SetContains(key, value, flags);
+            else
+                return false;
         }
 
         public Task<bool> SetContainsAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.SetContainsAsync(key, value, flags);
+            if (_dbData.MemorySets.Contains(key, value))
+                return Task.FromResult(true);
+            else if (_redisDb != null)
+                return _redisDb.SetContainsAsync(key, value, flags);
+            else
+                return Task.FromResult(false);
         }
 
         public long SetLength(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1329,6 +1350,7 @@ namespace StackRedis.L1
 
         public Task<long> SetLengthAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
+            //No in-memory capability
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1340,47 +1362,71 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetMembers(key, flags);
+            RedisValue[] result = _redisDb.SetMembers(key, flags);
+
+            //Store the values in memory
+            _dbData.MemorySets.Add(key, result);
+
+            return result;
         }
 
-        public Task<RedisValue[]> SetMembersAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
+        public async Task<RedisValue[]> SetMembersAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetMembersAsync(key, flags);
+            var result = await _redisDb.SetMembersAsync(key, flags);
+
+            //Store the values in memory
+            _dbData.MemorySets.Add(key, result);
+
+            return result;
         }
+
+        private object _setMoveLockObj = new object();
 
         public bool SetMove(RedisKey source, RedisKey destination, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.SetMove(source, destination, value, flags);
+            bool inMemResult = _dbData.MemorySets.Move(source, destination, value);
+            if (_redisDb != null)
+                return _redisDb.SetMove(source, destination, value, flags);
+            else
+                return inMemResult;
         }
 
         public Task<bool> SetMoveAsync(RedisKey source, RedisKey destination, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
-
-            return _redisDb.SetMoveAsync(source, destination, value, flags);
+            bool inMemResult = _dbData.MemorySets.Move(source, destination, value);
+            if (_redisDb != null)
+                return _redisDb.SetMoveAsync(source, destination, value, flags);
+            else
+                return Task.FromResult(inMemResult);
         }
 
         public RedisValue SetPop(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+            
+            RedisValue value = _redisDb.SetPop(key, flags);
 
-            return _redisDb.SetPop(key, flags);
+            //Remove it from memory
+            _dbData.MemorySets.Remove(key, new[] { value });
+
+            return value;
         }
 
-        public Task<RedisValue> SetPopAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
+        public async Task<RedisValue> SetPopAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetPopAsync(key, flags);
+            RedisValue value = await _redisDb.SetPopAsync(key, flags);
+
+            //Remove it from memory
+            _dbData.MemorySets.Remove(key, new[] { value });
+
+            return value;
         }
 
         public RedisValue SetRandomMember(RedisKey key, CommandFlags flags = CommandFlags.None)
@@ -1388,15 +1434,23 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetRandomMember(key, flags);
+            RedisValue value = _redisDb.SetRandomMember(key, flags);
+
+            _dbData.MemorySets.Add(key, new[] { value }); //Cache it
+
+            return value;
         }
 
-        public Task<RedisValue> SetRandomMemberAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
+        public async Task<RedisValue> SetRandomMemberAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetRandomMemberAsync(key, flags);
+            RedisValue value = await _redisDb.SetRandomMemberAsync(key, flags);
+
+            _dbData.MemorySets.Add(key, new[] { value }); //Cache it
+
+            return value;
         }
 
         public RedisValue[] SetRandomMembers(RedisKey key, long count, CommandFlags flags = CommandFlags.None)
@@ -1404,47 +1458,63 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetRandomMembers(key, count, flags);
+            RedisValue[] values = _redisDb.SetRandomMembers(key, count, flags);
+
+            _dbData.MemorySets.Add(key, values); //Cache it
+
+            return values;
         }
 
-        public Task<RedisValue[]> SetRandomMembersAsync(RedisKey key, long count, CommandFlags flags = CommandFlags.None)
+        public async Task<RedisValue[]> SetRandomMembersAsync(RedisKey key, long count, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetRandomMembersAsync(key, count, flags);
+            RedisValue[] values = await _redisDb.SetRandomMembersAsync(key, count, flags);
+
+            _dbData.MemorySets.Add(key, values); //Cache it
+
+            return values;
         }
 
         public long SetRemove(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long inMemResult = _dbData.MemorySets.Remove(key, values);
 
-            return _redisDb.SetRemove(key, values, flags);
+            if (_redisDb != null)
+                return _redisDb.SetRemove(key, values, flags);
+            else
+                return inMemResult;
         }
 
         public bool SetRemove(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long inMemResult = _dbData.MemorySets.Remove(key, new[] { value });
 
-            return _redisDb.SetRemove(key, value, flags);
+            if (_redisDb != null)
+                return _redisDb.SetRemove(key, value, flags);
+            else
+                return inMemResult > 0;
         }
 
         public Task<long> SetRemoveAsync(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long inMemResult = _dbData.MemorySets.Remove(key, values);
 
-            return _redisDb.SetRemoveAsync(key, values, flags);
+            if (_redisDb != null)
+                return _redisDb.SetRemoveAsync(key, values, flags);
+            else
+                return Task.FromResult(inMemResult);
         }
 
         public Task<bool> SetRemoveAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            if (_redisDb == null)
-                throw new NotImplementedException();
+            long inMemResult = _dbData.MemorySets.Remove(key, new[] { value });
 
-            return _redisDb.SetRemoveAsync(key, value, flags);
+            if (_redisDb != null)
+                return _redisDb.SetRemoveAsync(key, value, flags);
+            else
+                return Task.FromResult(inMemResult > 0);
         }
 
         public IEnumerable<RedisValue> SetScan(RedisKey key, RedisValue pattern, int pageSize, CommandFlags flags)
@@ -1452,7 +1522,12 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetScan(key, pattern, pageSize, flags);
+            foreach(RedisValue value in _redisDb.SetScan(key, pattern, pageSize, flags))
+            {
+                //Save off the value
+                _dbData.MemorySets.Add(key, new[] { value });
+                yield return value;
+            }
         }
 
         public IEnumerable<RedisValue> SetScan(RedisKey key, RedisValue pattern = default(RedisValue), int pageSize = 10, long cursor = 0, int pageOffset = 0, CommandFlags flags = CommandFlags.None)
@@ -1460,7 +1535,11 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SetScan(key, pattern, pageSize, cursor, pageOffset, flags);
+            foreach(RedisValue value in _redisDb.SetScan(key, pattern, pageSize, cursor, pageOffset, flags))
+            {
+                _dbData.MemorySets.Add(key, new[] { value });
+                yield return value;
+            }
         }
 
         public RedisValue[] Sort(RedisKey key, long skip = 0, long take = -1, Order order = Order.Ascending, SortType sortType = SortType.Numeric, RedisValue by = default(RedisValue), RedisValue[] get = null, CommandFlags flags = CommandFlags.None)
