@@ -26,8 +26,8 @@ If you wish to clear your in-memory state, simply `Dispose` it and re-create it.
 
 ### Project State
 
-The `String` and `Hash` types are accelerated. Other types will follow eventually, but unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up `StringGet`, `HashGet` etc but won't affect other parts of IDatabase.
+The `String`, `Set`, and `Hash` types are accelerated. Other types will follow eventually, but unimplemented calls are passed directly to Redis. In other words, dropping this library in will speed up `StringGet`, `HashGet` etc but won't affect other parts of IDatabase.
 
 ### Limitations
 
-If you use this library for one Redis client, you must use it for all clients of that database. This is because Redis keyspace notifications alone are not enough to accelerate the Hash type; custom messages are required. If you use this library to accelerate only one client, then that client risks holding on to stale data when other non-accelerated clients expire or delete keys.
+If you use this library for one Redis client, you must use it for all clients of that database. This is because Redis keyspace notifications alone are not enough to accelerate the Hash and Set types; custom messages are required. If you use this library to accelerate only one client, then that client risks holding on to stale data when other non-accelerated clients expire or delete keys.
