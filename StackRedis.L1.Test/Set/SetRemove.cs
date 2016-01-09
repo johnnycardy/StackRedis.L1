@@ -35,7 +35,7 @@ namespace StackRedis.L1.Test.Set
         }
         
         [TestMethod]
-        public async Task SetRemove_OtherClient()
+        public async Task SetRemove_OtherClient_String()
         {
             _memDb.SetAdd("set1", "value1");
             Assert.IsTrue(_memDb.SetContains("set1", "value1"));
@@ -44,9 +44,24 @@ namespace StackRedis.L1.Test.Set
             _otherClientDb.SetRemove("set1", "value1");
 
             //Wait for it to propagate
-            await Task.Delay(50);
+            await Task.Delay(50000);
 
             Assert.IsFalse(_memDb.SetContains("set1", "value1"));
+        }
+
+        [TestMethod]
+        public async Task SetRemove_OtherClient_Int()
+        {
+            _memDb.SetAdd("set1", 1);
+            Assert.IsTrue(_memDb.SetContains("set1", 1));
+            Assert.AreEqual(1, CallsByMemDb);
+
+            _otherClientDb.SetRemove("set1", 1);
+
+            //Wait for it to propagate
+            await Task.Delay(50000);
+
+            Assert.IsFalse(_memDb.SetContains("set1", 1));
         }
 
         [TestMethod]

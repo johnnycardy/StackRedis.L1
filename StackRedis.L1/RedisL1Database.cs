@@ -8,6 +8,7 @@ using System.Net;
 using StackRedis.L1.MemoryCache;
 using StackRedis.L1.MemoryCache.Types;
 using StackRedis.L1.KeyspaceNotifications;
+using StackRedis.L1.Notifications;
 
 namespace StackRedis.L1
 {

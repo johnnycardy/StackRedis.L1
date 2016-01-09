@@ -1,4 +1,5 @@
 ﻿using StackExchange.Redis;
+using StackRedis.L1.Notifications;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,6 +63,25 @@ namespace StackRedis.L1.MemoryCache.Types
             }
 
             return result;
+        }
+
+
+        //Remove entries given a hash code
+        internal void RemoveByHashCode(string key, string[] hashCodes)
+        {
+            var set = GetSet(key);
+            if(set != null)
+            {
+                //Get the items for the supplied hash codes
+                foreach(var hashCode in hashCodes)
+                {
+                    var value = set.FirstOrDefault(v => RedisValueHashCode.GetStableHashCode(v).ToString() == hashCode);
+                    if(value != default(RedisValue))
+                    {
+                        set.Remove(value);
+                    }
+                }
+            }
         }
 
         internal long Add(string setKey, RedisValue[] values)

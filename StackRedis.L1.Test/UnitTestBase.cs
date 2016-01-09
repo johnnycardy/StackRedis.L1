@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using StackRedis.L1.Notifications;
 
 namespace StackRedis.L1.Test
 {

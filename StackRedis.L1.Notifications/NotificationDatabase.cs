@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Diagnostics;
 
-namespace StackRedis.L1
+namespace StackRedis.L1.Notifications
 {
     /// <summary>
     /// Raises redis events for keyspace changes not covered by keyspace notifications.
@@ -1221,7 +1221,7 @@ namespace StackRedis.L1
         {
             if(_redisDb.SetMove(source, destination, value, flags))
             {
-                PublishEvent(source, "srem:" + value);
+                PublishEvent(source, "srem:" + RedisValueHashCode.GetStableHashCode(value));
                 return true;
             }
             else
@@ -1234,7 +1234,7 @@ namespace StackRedis.L1
         {
             if (await _redisDb.SetMoveAsync(source, destination, value, flags))
             {
-                PublishEvent(source, "srem:" + value);
+                PublishEvent(source, "srem:" + RedisValueHashCode.GetStableHashCode(value));
                 return true;
             }
             else
@@ -1248,7 +1248,7 @@ namespace StackRedis.L1
             RedisValue result = _redisDb.SetPop(key, flags);
             if(!result.IsNull)
             {
-                PublishEvent(key, "srem:" + result);
+                PublishEvent(key, "srem:" + RedisValueHashCode.GetStableHashCode(result));
             }
 
             return result;
@@ -1259,7 +1259,7 @@ namespace StackRedis.L1
             RedisValue result = await _redisDb.SetPopAsync(key, flags);
             if (!result.IsNull)
             {
-                PublishEvent(key, "srem:" + result);
+                PublishEvent(key, "srem:" + RedisValueHashCode.GetStableHashCode(result));
             }
 
             return result;
@@ -1304,28 +1304,28 @@ namespace StackRedis.L1
         public long SetRemove(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
             foreach (RedisValue value in values)
-                PublishEvent(key, "srem:" + value);
+                PublishEvent(key, "srem:" + RedisValueHashCode.GetStableHashCode(value));
 
             return _redisDb.SetRemove(key, values, flags);
         }
 
         public bool SetRemove(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            PublishEvent(key, "srem:" + value);
+            PublishEvent(key, "srem:" + RedisValueHashCode.GetStableHashCode(value));
             return _redisDb.SetRemove(key, value, flags);
         }
 
         public Task<long> SetRemoveAsync(RedisKey key, RedisValue[] values, CommandFlags flags = CommandFlags.None)
         {
             foreach(RedisValue value in values)
-                PublishEvent(key, "srem:" + value);
+                PublishEvent(key, "srem:" + RedisValueHashCode.GetStableHashCode(value));
 
             return _redisDb.SetRemoveAsync(key, values, flags);
         }
 
         public Task<bool> SetRemoveAsync(RedisKey key, RedisValue value, CommandFlags flags = CommandFlags.None)
         {
-            PublishEvent(key, "srem:" + value);
+            PublishEvent(key, "srem:" + RedisValueHashCode.GetStableHashCode(value));
             return _redisDb.SetRemoveAsync(key, value, flags);
         }
 

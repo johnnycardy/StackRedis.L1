@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackRedis.L1.Notifications;
 
 namespace StackRedis.L1.KeyspaceNotifications
 {
@@ -89,8 +90,9 @@ namespace StackRedis.L1.KeyspaceNotifications
             }
             else if(eventName == "srem")
             {
-                //Removing an item from a set
+                //Removing an item from a set. Support for the argument being either the value, or a hashcode if it's a long value.
                 dbData.MemorySets.Remove(key, new[] { (RedisValue)eventArg });
+                dbData.MemorySets.RemoveByHashCode(key, new[] { eventArg });
             }
             else if (eventName == "del")
             {
