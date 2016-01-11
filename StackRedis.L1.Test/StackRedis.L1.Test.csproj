@@ -85,6 +85,7 @@
     <Compile Include="Set\SetRandomMember.cs" />
     <Compile Include="Set\SetRemove.cs" />
     <Compile Include="Set\SetScan.cs" />
+    <Compile Include="SortedSet\DisjointedSortedSet.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
