@@ -72,8 +72,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         /// </summary>
         internal bool ScoreBelongs(double score)
         {
-            //If there's 0 or 1 items, it always belongs in this set.
-            return _sortedSet.Count < 2 || (score >= ScoreStart && score <= ScoreEnd);
+            return score >= ScoreStart && score <= ScoreEnd;
         }
 
         /// <summary>

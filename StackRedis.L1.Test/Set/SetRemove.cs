@@ -44,7 +44,7 @@ namespace StackRedis.L1.Test.Set
             _otherClientDb.SetRemove("set1", "value1");
 
             //Wait for it to propagate
-            await Task.Delay(50000);
+            await Task.Delay(50);
 
             Assert.IsFalse(_memDb.SetContains("set1", "value1"));
         }
@@ -59,7 +59,7 @@ namespace StackRedis.L1.Test.Set
             _otherClientDb.SetRemove("set1", 1);
 
             //Wait for it to propagate
-            await Task.Delay(50000);
+            await Task.Delay(50);
 
             Assert.IsFalse(_memDb.SetContains("set1", 1));
         }

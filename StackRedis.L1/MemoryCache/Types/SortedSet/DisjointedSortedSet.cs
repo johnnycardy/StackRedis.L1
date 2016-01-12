@@ -22,7 +22,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         }
 
         /// <summary>
-        /// Adds what is assumed to be a sorted, continuous range of entries, as returned by a redis call.
+        /// Adds what is assumed to be continuous range of entries, as returned by a redis call.
         /// </summary>
         internal void Add(SortedSetEntry[] sortedContinuousEntries)
         {

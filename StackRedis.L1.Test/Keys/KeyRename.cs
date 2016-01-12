@@ -35,7 +35,7 @@ namespace StackRedis.L1.Test
             _memDb.StringSet("key1", "value1");
             
             //Now expire it
-            _memDb.KeyExpire("key1", DateTime.UtcNow.AddMilliseconds(20));
+            _memDb.KeyExpire("key1", DateTime.UtcNow.AddMilliseconds(50));
             Assert.AreEqual(2, CallsByMemDb);
 
             //Rename the key
@@ -43,7 +43,7 @@ namespace StackRedis.L1.Test
             Assert.IsFalse(_memDb.KeyExists("key1"));
 
             //Wait the time for expiry
-            await Task.Delay(25);
+            await Task.Delay(60);
 
             //It should have now expired
             Assert.IsFalse(_memDb.StringGet("key2").HasValue);
