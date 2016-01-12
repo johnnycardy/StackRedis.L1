@@ -104,10 +104,14 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
     {
         public int Compare(SortedSetEntry x, SortedSetEntry y)
         {
-            if (x.Score == y.Score)
-                return 0;
+            if (x.Score == y.Score && x.Element == y.Element)
+            {
+                return 0; //They're equal
+            }
             else
+            {
                 return x.Score < y.Score ? -1 : 1;
+            }
         }
     }
 }

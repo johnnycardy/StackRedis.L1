@@ -151,7 +151,7 @@ namespace StackRedis.L1.Test.SortedSet
         }
 
         [TestMethod]
-        public void DisjointedSet_Add_ThreeRanges_Overlapped_Merged()
+        public void DisjointedSet_Add_ThreeRanges_Overlapped_Outside_Merged()
         {
             DisjointedSortedSet set = new DisjointedSortedSet();
 
@@ -176,6 +176,34 @@ namespace StackRedis.L1.Test.SortedSet
             Assert.AreEqual(1, set.RetrieveByScore(10, 10).Count());
             Assert.AreEqual(3, set.RetrieveByScore(15, 45).Count());
             Assert.AreEqual(5, set.RetrieveByScore(10, 50).Count());
+        }
+
+        [TestMethod]
+        public void DisjointedSet_Add_ThreeRanges_Overlapped_Inside_Merged()
+        {
+            DisjointedSortedSet set = new DisjointedSortedSet();
+
+            set.Add(new[]
+            {
+                new StackExchange.Redis.SortedSetEntry("anna", 20)
+            });
+            set.Add(new[]
+            {
+                new StackExchange.Redis.SortedSetEntry("bob", 30),
+                new StackExchange.Redis.SortedSetEntry("derek", 40)
+            });
+
+            //One more to merge into the two above
+            set.Add(new[]
+            {
+                new StackExchange.Redis.SortedSetEntry("carol", 25),
+                new StackExchange.Redis.SortedSetEntry("sue", 35)
+            });
+
+            Assert.IsNull(set.RetrieveByScore(5, 50));
+            Assert.AreEqual(1, set.RetrieveByScore(20, 20).Count());
+            Assert.AreEqual(3, set.RetrieveByScore(25, 35).Count());
+            Assert.AreEqual(5, set.RetrieveByScore(20, 40).Count());
         }
     }
 }
