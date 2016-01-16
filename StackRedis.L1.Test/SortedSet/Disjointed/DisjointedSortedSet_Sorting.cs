@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using StackExchange.Redis;
 using StackRedis.L1.MemoryCache.Types.SortedSet;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("anna", 10),
                 new StackExchange.Redis.SortedSetEntry("bob", 20)
             });
-            var result = set.RetrieveByScore(10, 20);
+            var result = set.RetrieveByScore(10, 20, Exclude.None);
             Assert.AreEqual(10, result.ElementAt(0).Score);
             Assert.AreEqual(20, result.ElementAt(1).Score);
         }
@@ -41,7 +42,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("derek", 25)
             });
 
-            var result = set.RetrieveByScore(10, 25);
+            var result = set.RetrieveByScore(10, 25, Exclude.None);
             Assert.AreEqual(10, result.ElementAt(0).Score);
             Assert.AreEqual(15, result.ElementAt(1).Score);
             Assert.AreEqual(20, result.ElementAt(2).Score);
@@ -57,7 +58,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("anna", 20),
                 new StackExchange.Redis.SortedSetEntry("bob", 10)
             });
-            var result = set.RetrieveByScore(10, 20);
+            var result = set.RetrieveByScore(10, 20, Exclude.None);
             Assert.AreEqual(10, result.ElementAt(0).Score);
             Assert.AreEqual(20, result.ElementAt(1).Score);
         }
@@ -78,7 +79,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("derek", 15)
             });
 
-            var result = set.RetrieveByScore(10, 25);
+            var result = set.RetrieveByScore(10, 25, Exclude.None);
             Assert.AreEqual(10, result.ElementAt(0).Score);
             Assert.AreEqual(15, result.ElementAt(1).Score);
             Assert.AreEqual(20, result.ElementAt(2).Score);

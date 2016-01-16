@@ -85,9 +85,12 @@
     <Compile Include="Set\SetRandomMember.cs" />
     <Compile Include="Set\SetRemove.cs" />
     <Compile Include="Set\SetScan.cs" />
-    <Compile Include="SortedSet\DisjointedSortedSet_Add.cs" />
-    <Compile Include="SortedSet\DisjointedSortedSet_Duplicates.cs" />
-    <Compile Include="SortedSet\DisjointedSortedSet_Sorting.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Add.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Duplicates.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RemoveByScore.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Remove.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RetrieveScoreByValue.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Sorting.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

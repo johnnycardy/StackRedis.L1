@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using StackExchange.Redis;
 using StackRedis.L1.MemoryCache.Types.SortedSet;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("bob", 10)
             });
 
-            Assert.AreEqual(2, set.RetrieveByScore(10, 10).Count());
+            Assert.AreEqual(2, set.RetrieveByScore(10, 10, Exclude.None).Count());
         }
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("anna", 10)
             });
 
-            Assert.AreEqual(1, set.RetrieveByScore(10, 10).Count());
+            Assert.AreEqual(1, set.RetrieveByScore(10, 10, Exclude.None).Count());
         }
 
         [TestMethod]
@@ -51,7 +52,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("anna", 10)
             });
 
-            Assert.AreEqual(1, set.RetrieveByScore(10, 10).Count());
+            Assert.AreEqual(1, set.RetrieveByScore(10, 10, Exclude.None).Count());
         }
     }
 }

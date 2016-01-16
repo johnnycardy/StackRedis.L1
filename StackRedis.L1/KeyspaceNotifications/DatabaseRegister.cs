@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StackRedis.L1.MemoryCache.Types;
+using StackRedis.L1.MemoryCache.Types.SortedSet;
 
 namespace StackRedis.L1.KeyspaceNotifications
 {
@@ -73,6 +74,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         internal MemoryStrings MemoryStrings { get; private set; }
         internal MemoryHashes MemoryHashes { get; private set; }
         internal MemorySets MemorySets { get; private set; }
+        internal MemorySortedSet MemorySortedSets { get; private set; }
 
         internal DatabaseInstanceData(IDatabase redisDb)
         {
@@ -80,6 +82,7 @@ namespace StackRedis.L1.KeyspaceNotifications
             MemoryStrings = new MemoryStrings(MemoryCache);
             MemoryHashes = new MemoryHashes(MemoryCache);
             MemorySets = new MemorySets(MemoryCache);
+            MemorySortedSets = new MemorySortedSet(MemoryCache);
 
             //If we have access to a redis instance, then listen to it for notifications
             if (redisDb != null)

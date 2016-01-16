@@ -14,12 +14,14 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
     {
         private SortedSet<SortedSetEntry> _sortedSet;
         
+        internal int Count
+        {
+            get { return _sortedSet.Count; }
+        }
+
         internal IEnumerable<SortedSetEntry> Elements
         {
-            get
-            {
-                return _sortedSet;
-            }
+            get { return _sortedSet; }
         }
 
         /// <summary>
@@ -58,7 +60,33 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         {
             _sortedSet = new SortedSet<SortedSetEntry>(initialEntries, new SortedSetScoreComparer());
         }
+        
+        internal bool Remove(RedisValue entry)
+        {
+            return _sortedSet.RemoveWhere(e => e.Element == entry) >= 0;
+        }
 
+        internal int RemoveByScore(double start, double end, Exclude exclude)
+        {
+            return _sortedSet.RemoveWhere(elem => IsMatch(elem.Score, start, end, exclude));
+        }
+
+        internal static bool IsMatch(double test, double start, double stop, Exclude exclude)
+        {
+            if(test == start && (exclude == Exclude.None || exclude == Exclude.Stop))
+            {
+                return true;
+            }
+            else if(test == stop && (exclude == Exclude.None || exclude == Exclude.Start))
+            {
+                return true;
+            }
+            else
+            {
+                return test > start && test < stop;
+            }
+        }
+        
         /// <summary>
         /// Adds the entry to this range.
         /// </summary>
@@ -78,23 +106,9 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         /// <summary>
         /// Gets a subrange of this sorted set range.
         /// </summary>
-        internal IEnumerable<SortedSetEntry> Subrange(double start, double end)
+        internal IEnumerable<SortedSetEntry> Subrange(double start, double end, Exclude exclude)
         {
-            foreach(var entry in _sortedSet)
-            {
-                if(entry.Score >= start)
-                {
-                    if(entry.Score <= end)
-                    {
-                        yield return entry;
-                    }
-                    else
-                    {
-                        //Since the set is ordered, we know we've reached the end of the subset.
-                        break;
-                    }
-                }
-            }
+            return _sortedSet.Where(elem => IsMatch(elem.Score, start, end, exclude));
         }
         
     }
@@ -105,7 +119,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         {
             if (x.Score == y.Score && x.Element == y.Element)
             {
-                return 0; //They're equal
+                return 0;
             }
             else
             {
