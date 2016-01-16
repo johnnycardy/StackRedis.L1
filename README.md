@@ -34,17 +34,17 @@ No doubt there are other limitations I haven't thought of, so all feedback is of
 
 Any types/functions that are not accelerated will work as normal, as the request will be passed directly to Redis. Details on what is accelerated is laid out below.
 
-#String
+**String**
 The `String` type is fully accelerated, using `MemoryCache` for storage.
 
-#Hash
+**Hash**
 The `Hash` type is fully accelerated with a `Dictionary` used for storage.
 
-#Set
+**Set**
 The `Set` type is heavily accelerated using a `HashSet` used for in-memory storage.
 
-#SortedSet
+**SortedSet**
 This is work in progress. Only `SortedSet` operations involving `score` are currently accelerated. This is done using the concept of 'disjointed sets' - a collection of sorted subsets of the full sorted set. This is a picture of the full sorted set "with gaps". If a retrieval request is made involving a gap, then the request is passed to Redis and the result is cached - plugging that gap in-memory.
 
-#List
+**List**
 The `List` type cannot easily be cached in-memory. This is because operations generally involve the head or the tail of the list, and we cannot know whether or not we have the head or tail in-memory. Most operations would involve invalidating any in-memory list data and so there would be little benefit. All `List` operations are passed through directly to Redis.
