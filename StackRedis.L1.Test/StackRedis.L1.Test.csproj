@@ -87,10 +87,16 @@
     <Compile Include="Set\SetScan.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Add.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Duplicates.cs" />
+    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_JoinRanges.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RemoveByScore.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Remove.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RetrieveScoreByValue.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Sorting.cs" />
+    <Compile Include="SortedSet\SortedSet_Add.cs" />
+    <Compile Include="SortedSet\SortedSet_RangeByScore.cs" />
+    <Compile Include="SortedSet\SortedSet_RangeByScoreWithScores.cs" />
+    <Compile Include="SortedSet\SortedSet_Remove.cs" />
+    <Compile Include="SortedSet\SortedSet_Score.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1580,6 +1580,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.Add(key, values, false);
+
             return _redisDb.SortedSetAdd(key, values, flags);
         }
 
@@ -1587,6 +1589,8 @@ namespace StackRedis.L1
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+
+            _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score) }, false);
 
             return _redisDb.SortedSetAdd(key, member, score, flags);
         }
@@ -1596,6 +1600,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.Add(key, values, false);
+
             return _redisDb.SortedSetAddAsync(key, values, flags);
         }
 
@@ -1603,6 +1609,8 @@ namespace StackRedis.L1
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+
+            _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score) }, false);
 
             return _redisDb.SortedSetAddAsync(key, member, score, flags);
         }
@@ -1644,6 +1652,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.DecrementOrAdd(key, member, value);
+
             return _redisDb.SortedSetDecrement(key, member, value, flags);
         }
 
@@ -1652,6 +1662,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.DecrementOrAdd(key, member, value);
             return _redisDb.SortedSetDecrementAsync(key, member, value, flags);
         }
 
@@ -1660,6 +1671,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.IncrementOrAdd(key, member, value);
             return _redisDb.SortedSetIncrement(key, member, value, flags);
         }
 
@@ -1668,6 +1680,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.IncrementOrAdd(key, member, value);
             return _redisDb.SortedSetIncrementAsync(key, member, value, flags);
         }
 
@@ -1711,6 +1724,9 @@ namespace StackRedis.L1
             return _redisDb.SortedSetRangeByRank(key, start, stop, order, flags);
         }
 
+        /// <summary>
+        /// Does not cache values since caching is done by score.
+        /// </summary>
         public Task<RedisValue[]> SortedSetRangeByRankAsync(RedisKey key, long start = 0, long stop = -1, Order order = Order.Ascending, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
@@ -1719,52 +1735,103 @@ namespace StackRedis.L1
             return _redisDb.SortedSetRangeByRankAsync(key, start, stop, order, flags);
         }
 
+        /// <summary>
+        /// Caches returned values by their score only.
+        /// </summary>
         public SortedSetEntry[] SortedSetRangeByRankWithScores(RedisKey key, long start = 0, long stop = -1, Order order = Order.Ascending, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetRangeByRankWithScores(key, start, stop, order, flags);
+            var result = _redisDb.SortedSetRangeByRankWithScores(key, start, stop, order, flags);
+
+            _dbData.MemorySortedSets.Add(key, result, false);
+
+            return result;
         }
 
-        public Task<SortedSetEntry[]> SortedSetRangeByRankWithScoresAsync(RedisKey key, long start = 0, long stop = -1, Order order = Order.Ascending, CommandFlags flags = CommandFlags.None)
+        public async Task<SortedSetEntry[]> SortedSetRangeByRankWithScoresAsync(RedisKey key, long start = 0, long stop = -1, Order order = Order.Ascending, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetRangeByRankWithScoresAsync(key, start, stop, order, flags);
-        }
+            var result = await _redisDb.SortedSetRangeByRankWithScoresAsync(key, start, stop, order, flags);
 
+            _dbData.MemorySortedSets.Add(key, result, false);
+
+            return result;
+        }
+        
+        //Does not cache the result since scores are not returned
         public RedisValue[] SortedSetRangeByScore(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
         {
+            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
+            if (result != null)
+                return result.Select(e => e.Element).ToArray();
+            
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetRangeByScore(key, start, stop, exclude, order, skip, take, flags);
+            var values = _redisDb.SortedSetRangeByScore(key, start, stop, exclude, order, skip, take, flags);
+
+            //We know these values are continuous
+            _dbData.MemorySortedSets.MarkValuesAsContinuous(key, values);
+
+            return values;
         }
 
-        public Task<RedisValue[]> SortedSetRangeByScoreAsync(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
+        //Does not cache the result since scores are not returned
+        public async Task<RedisValue[]> SortedSetRangeByScoreAsync(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
         {
+            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
+            if (result != null)
+                return result.Select(e => e.Element).ToArray();
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetRangeByScoreAsync(key, start, stop, exclude, order, skip, take, flags);
+            var values = await _redisDb.SortedSetRangeByScoreAsync(key, start, stop, exclude, order, skip, take, flags);
+
+            _dbData.MemorySortedSets.MarkValuesAsContinuous(key, values);
+
+            return values;
         }
 
+        //Caches results
         public SortedSetEntry[] SortedSetRangeByScoreWithScores(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
+            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
+            if (result != null)
+            {
+                return result.ToArray();
+            }
+            else
+            {
+                var resultArr = _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
+                _dbData.MemorySortedSets.Add(key, resultArr, true);
+                return resultArr;
+            }
         }
 
-        public Task<SortedSetEntry[]> SortedSetRangeByScoreWithScoresAsync(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
+        public async Task<SortedSetEntry[]> SortedSetRangeByScoreWithScoresAsync(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetRangeByScoreWithScoresAsync(key, start, stop, exclude, order, skip, take, flags);
+            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
+            if (result != null)
+            {
+                return result.ToArray();
+            }
+            else
+            {
+                var resultArr = await _redisDb.SortedSetRangeByScoreWithScoresAsync(key, start, stop, exclude, order, skip, take, flags);
+                _dbData.MemorySortedSets.Add(key, resultArr, true);
+                return resultArr;
+            }
         }
 
         public RedisValue[] SortedSetRangeByValue(RedisKey key, RedisValue min = default(RedisValue), RedisValue max = default(RedisValue), Exclude exclude = Exclude.None, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
@@ -1804,6 +1871,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.Delete(key, members);
+
             return _redisDb.SortedSetRemove(key, members, flags);
         }
 
@@ -1811,6 +1880,8 @@ namespace StackRedis.L1
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+
+            _dbData.MemorySortedSets.Delete(key, new[] { member });
 
             return _redisDb.SortedSetRemove(key, member, flags);
         }
@@ -1820,6 +1891,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.Delete(key, members);
+
             return _redisDb.SortedSetRemoveAsync(key, members, flags);
         }
 
@@ -1827,6 +1900,8 @@ namespace StackRedis.L1
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+
+            _dbData.MemorySortedSets.Delete(key, new[] { member });
 
             return _redisDb.SortedSetRemoveAsync(key, member, flags);
         }
@@ -1836,6 +1911,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemoryCache.Remove(new[] { (string)key }); //Invalidate the whole in-memory set because we can't update it properly.
+
             return _redisDb.SortedSetRemoveRangeByRank(key, start, stop, flags);
         }
 
@@ -1844,6 +1921,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemoryCache.Remove(new[] { (string)key }); //Invalidate the whole in-memory set because we can't update it properly
             return _redisDb.SortedSetRemoveRangeByRankAsync(key, start, stop, flags);
         }
 
@@ -1851,6 +1929,8 @@ namespace StackRedis.L1
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+
+            _dbData.MemorySortedSets.DeleteByScore(key, start, stop, exclude);
 
             return _redisDb.SortedSetRemoveRangeByScore(key, start, stop, exclude, flags);
         }
@@ -1860,6 +1940,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemorySortedSets.DeleteByScore(key, start, stop, exclude);
+
             return _redisDb.SortedSetRemoveRangeByScoreAsync(key, start, stop, exclude, flags);
         }
 
@@ -1867,6 +1949,8 @@ namespace StackRedis.L1
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
+
+            _dbData.MemoryCache.Remove(new string[] { key });
 
             return _redisDb.SortedSetRemoveRangeByValue(key, min, max, exclude, flags);
         }
@@ -1876,6 +1960,8 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
+            _dbData.MemoryCache.Remove(new string[] { key });
+
             return _redisDb.SortedSetRemoveRangeByValueAsync(key, min, max, exclude, flags);
         }
 
@@ -1884,7 +1970,12 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetScan(key, pattern, pageSize, flags);
+            foreach(var resultEntry in _redisDb.SortedSetScan(key, pattern, pageSize, flags))
+            {
+                _dbData.MemorySortedSets.Add(key, new[] { resultEntry }, false);
+
+                yield return resultEntry;
+            }
         }
 
         public IEnumerable<SortedSetEntry> SortedSetScan(RedisKey key, RedisValue pattern = default(RedisValue), int pageSize = 10, long cursor = 0, int pageOffset = 0, CommandFlags flags = CommandFlags.None)
@@ -1892,7 +1983,12 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetScan(key, pattern, pageSize, cursor, pageOffset, flags);
+            foreach (var resultEntry in _redisDb.SortedSetScan(key, pattern, pageSize, cursor, pageOffset, flags))
+            {
+                _dbData.MemorySortedSets.Add(key, new[] { resultEntry }, false);
+
+                yield return resultEntry;
+            }
         }
 
         public double? SortedSetScore(RedisKey key, RedisValue member, CommandFlags flags = CommandFlags.None)
@@ -1900,15 +1996,50 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetScore(key, member, flags);
+            //Try and get it from memory
+            var entry = _dbData.MemorySortedSets.GetEntry(key, member);
+            if (entry.HasValue)
+            {
+                return entry.Value.Score;
+            }
+            else
+            {
+                //Get it from Redis
+                double? score = _redisDb.SortedSetScore(key, member, flags);
+
+                if (score.HasValue)
+                {
+                    //Cache it
+                    _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score.Value) }, true);
+                }
+
+                return score;
+            }
         }
 
-        public Task<double?> SortedSetScoreAsync(RedisKey key, RedisValue member, CommandFlags flags = CommandFlags.None)
+        public async Task<double?> SortedSetScoreAsync(RedisKey key, RedisValue member, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            return _redisDb.SortedSetScoreAsync(key, member, flags);
+            var entry = _dbData.MemorySortedSets.GetEntry(key, member);
+            if (entry.HasValue)
+            {
+                return entry.Value.Score;
+            }
+            else
+            {
+                double? score = await _redisDb.SortedSetScoreAsync(key, member, flags);
+
+                if (score.HasValue)
+                {
+                    //Cache it
+                    _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score.Value) }, true);
+                }
+
+                return score;
+            }
+
         }
 
         /// <summary>

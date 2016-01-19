@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace StackRedis.L1.Notifications
 {
@@ -1210,10 +1211,6 @@ namespace StackRedis.L1.Notifications
 
         public Task<RedisValue[]> SetMembersAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
             return _redisDb.SetMembersAsync(key, flags);
         }
 
@@ -1385,38 +1382,54 @@ namespace StackRedis.L1.Notifications
 
         public long SortedSetAdd(RedisKey key, SortedSetEntry[] values, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = _redisDb.SortedSetAdd(key, values, flags);
 
+            foreach (var value in values)
+            {
+                //Publish an event containing the member hashcode and the score score.
+                PublishEvent(key, $"zadd:{RedisValueHashCode.GetStableHashCode(value.Element)}");
+            }
 
-
-            return _redisDb.SortedSetAdd(key, values, flags);
+            return result;
         }
 
         public bool SortedSetAdd(RedisKey key, RedisValue member, double score, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
-            return _redisDb.SortedSetAdd(key, member, score, flags);
+            if(_redisDb.SortedSetAdd(key, member, score, flags))
+            {
+                //Publish an event containing the member hashcode and the score score.
+                PublishEvent(key, $"zadd:{RedisValueHashCode.GetStableHashCode(member)}");
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        public Task<long> SortedSetAddAsync(RedisKey key, SortedSetEntry[] values, CommandFlags flags = CommandFlags.None)
+        public async Task<long> SortedSetAddAsync(RedisKey key, SortedSetEntry[] values, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = await _redisDb.SortedSetAddAsync(key, values, flags);
 
+            foreach (var value in values)
+            {
+                //Publish an event containing the member hashcode and the score score.
+                PublishEvent(key, $"zadd:{RedisValueHashCode.GetStableHashCode(value.Element)}");
+            }
 
-
-            return _redisDb.SortedSetAddAsync(key, values, flags);
+            return result;
         }
 
-        public Task<bool> SortedSetAddAsync(RedisKey key, RedisValue member, double score, CommandFlags flags = CommandFlags.None)
+        public async Task<bool> SortedSetAddAsync(RedisKey key, RedisValue member, double score, CommandFlags flags = CommandFlags.None)
         {
-            
+            bool result = await _redisDb.SortedSetAddAsync(key, member, score, flags);
 
+            if(result)
+            {
+                PublishEvent(key, $"zadd:{RedisValueHashCode.GetStableHashCode(member)}");
+            }
 
-
-            return _redisDb.SortedSetAddAsync(key, member, score, flags);
+            return result;
         }
 
         public long SortedSetCombineAndStore(SetOperation operation, RedisKey destination, RedisKey[] keys, double[] weights = null, Aggregate aggregate = Aggregate.Sum, CommandFlags flags = CommandFlags.None)
@@ -1637,38 +1650,45 @@ namespace StackRedis.L1.Notifications
 
         public long SortedSetRemove(RedisKey key, RedisValue[] members, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
-            return _redisDb.SortedSetRemove(key, members, flags);
+            long result = _redisDb.SortedSetRemove(key, members, flags);
+            foreach (var value in members)
+            {
+                PublishEvent(key, $"zrem:{RedisValueHashCode.GetStableHashCode(value)}");
+            }
+            return result;
         }
 
         public bool SortedSetRemove(RedisKey key, RedisValue member, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
-            return _redisDb.SortedSetRemove(key, member, flags);
+            if (_redisDb.SortedSetRemove(key, member, flags))
+            {
+                PublishEvent(key, $"zrem:{RedisValueHashCode.GetStableHashCode(member)}");
+                return true;
+            }
+            else
+                return false;
         }
 
-        public Task<long> SortedSetRemoveAsync(RedisKey key, RedisValue[] members, CommandFlags flags = CommandFlags.None)
+        public async Task<long> SortedSetRemoveAsync(RedisKey key, RedisValue[] members, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = await _redisDb.SortedSetRemoveAsync(key, members, flags);
 
-
-
-            return _redisDb.SortedSetRemoveAsync(key, members, flags);
+            foreach (var value in members)
+            {
+                PublishEvent(key, $"zrem:{RedisValueHashCode.GetStableHashCode(value)}");
+            }
+            return result;
         }
 
-        public Task<bool> SortedSetRemoveAsync(RedisKey key, RedisValue member, CommandFlags flags = CommandFlags.None)
+        public async Task<bool> SortedSetRemoveAsync(RedisKey key, RedisValue member, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
-            return _redisDb.SortedSetRemoveAsync(key, member, flags);
+            if (await _redisDb.SortedSetRemoveAsync(key, member, flags))
+            {
+                PublishEvent(key, $"zrem:{RedisValueHashCode.GetStableHashCode(member)}");
+                return true;
+            }
+            else
+                return false;
         }
 
         public long SortedSetRemoveRangeByRank(RedisKey key, long start, long stop, CommandFlags flags = CommandFlags.None)

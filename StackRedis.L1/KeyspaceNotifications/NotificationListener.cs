@@ -90,9 +90,26 @@ namespace StackRedis.L1.KeyspaceNotifications
             }
             else if(eventName == "srem")
             {
-                //Removing an item from a set. Support for the argument being either the value, or a hashcode if it's a long value.
-                dbData.MemorySets.Remove(key, new[] { (RedisValue)eventArg });
+                //Removing an item from a set.
                 dbData.MemorySets.RemoveByHashCode(key, new[] { eventArg });
+            }
+            else if(eventName == "zadd")
+            {
+                //An item is added to a sorted set. We should remove it from its current location if it's already there.
+                int hashCode;
+                if (int.TryParse(eventArg, out hashCode))
+                {
+                    dbData.MemorySortedSets.RemoveByHashCode(key, hashCode);
+                }
+            }
+            else if(eventName == "zrem")
+            {
+                //An item is removed from a sorted set.
+                int hashCode;
+                if (int.TryParse(eventArg, out hashCode))
+                {
+                    dbData.MemorySortedSets.RemoveByHashCode(key, hashCode);
+                }
             }
             else if (eventName == "del")
             {

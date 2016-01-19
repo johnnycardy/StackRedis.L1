@@ -1,4 +1,5 @@
 ﻿using StackExchange.Redis;
+using StackRedis.L1.Notifications;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,10 +61,20 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         {
             _sortedSet = new SortedSet<SortedSetEntry>(initialEntries, new SortedSetScoreComparer());
         }
-        
+
+        internal bool RemoveByHashCode(int hashCode)
+        {
+            return _sortedSet.RemoveWhere(e => RedisValueHashCode.GetStableHashCode(e.Element) == hashCode) >= 0;
+        }
+
         internal bool Remove(RedisValue entry)
         {
             return _sortedSet.RemoveWhere(e => e.Element == entry) >= 0;
+        }
+
+        internal bool Contains(RedisValue value)
+        {
+            return _sortedSet.Any(e => e.Element == value);
         }
 
         internal int RemoveByScore(double start, double end, Exclude exclude)
@@ -93,6 +104,15 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         internal void Add(SortedSetEntry entry)
         {
             _sortedSet.Add(entry);
+        }
+
+        /// <summary>
+        /// Merges a whole range into this range
+        /// </summary>
+        internal void Add(SortedSetRange range)
+        {
+            foreach (var entry in range.Elements)
+                _sortedSet.Add(entry);
         }
 
         /// <summary>

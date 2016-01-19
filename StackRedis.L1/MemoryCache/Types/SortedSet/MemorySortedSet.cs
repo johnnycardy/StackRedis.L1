@@ -39,15 +39,53 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         }
 
         /// <summary>
+        /// If the supplied values are already all present in disjointed sections of the set, then they will be joined.
+        /// </summary>
+        internal void MarkValuesAsContinuous(string key, RedisValue[] entries)
+        {
+            var set = GetSortedSet(key);
+            if(set != null)
+            {
+                set.JoinRanges(entries);
+            }
+        }
+
+        /// <summary>
         /// Removes the specified entries
         /// </summary>
         internal void Delete(string key, RedisValue[] entries)
         {
             var set = GetSortedSet(key);
-            if(set != null)
+            if (set != null)
             {
                 set.Remove(entries);
             }
+        }
+
+        internal void RemoveByHashCode(string key, int hashCode)
+        {
+            var set = GetSortedSet(key);
+            if (set != null)
+            {
+                var entry = set.RetrieveEntryByHashCode(hashCode);
+                if(entry.HasValue)
+                {
+                    set.Remove(new[] { entry.Value.Element });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the entries matching the specified hash code
+        /// </summary>
+        internal SortedSetEntry? GetByHashCode(string key, int hashCode)
+        {
+            var set = GetSortedSet(key);
+            if(set != null)
+            {
+                return set.RetrieveEntryByHashCode(hashCode);
+            }
+            return null;
         }
 
         internal void DeleteByScore(string key, double start, double end, Exclude exclude)
@@ -57,6 +95,21 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             {
                 set.RemoveByScore(start, end, exclude);
             }
+        }
+
+        internal SortedSetEntry? GetEntry(string key, RedisValue member)
+        {
+            var set = GetSortedSet(key);
+            if (set != null)
+            {
+                var entry = set.RetrieveEntry(member);
+                if(entry.HasValue)
+                {
+                    return entry.Value;
+                }
+            }
+
+            return null;
         }
 
         internal IEnumerable<SortedSetEntry> GetByScore(string key, double start, double end, Exclude exclude)
