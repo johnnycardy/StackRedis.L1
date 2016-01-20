@@ -72,8 +72,7 @@ namespace StackRedis.L1.Test.SortedSet
             result = _memDb.SortedSetRangeByScore("key", 1, 3, StackExchange.Redis.Exclude.None);
             Assert.AreEqual(3, result.Count());
             Assert.AreEqual(2, CallsByMemDb); //Now it's cached
-
-
+            
             _otherClientDb.SortedSetRemove("key", "mem2");
 
             //Wait for it to propagate...

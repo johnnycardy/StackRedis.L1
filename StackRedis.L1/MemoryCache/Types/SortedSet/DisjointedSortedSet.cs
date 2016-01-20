@@ -180,12 +180,20 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
 
             lock(_opLockObj)
             {
-                foreach (var range in _ranges)
+                foreach (var range in _ranges.ToArray())
                 {
                     foreach (var redisValue in toRemove.ToArray())
                     {
                         if (range.Remove(redisValue))
+                        {
                             toRemove.Remove(redisValue);
+
+                            if (range.Count == 0)
+                            {
+                                _ranges.Remove(range);
+                                break;
+                            }
+                        }
                     }
 
                     if (!toRemove.Any())

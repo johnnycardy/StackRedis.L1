@@ -1452,56 +1452,48 @@ namespace StackRedis.L1.Notifications
 
         public Task<long> SortedSetCombineAndStoreAsync(SetOperation operation, RedisKey destination, RedisKey[] keys, double[] weights = null, Aggregate aggregate = Aggregate.Sum, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
             return _redisDb.SortedSetCombineAndStoreAsync(operation, destination, keys, weights, aggregate, flags);
         }
 
         public Task<long> SortedSetCombineAndStoreAsync(SetOperation operation, RedisKey destination, RedisKey first, RedisKey second, Aggregate aggregate = Aggregate.Sum, CommandFlags flags = CommandFlags.None)
         {
-            
-
-
-
             return _redisDb.SortedSetCombineAndStoreAsync(operation, destination, first, second, aggregate, flags);
         }
 
         public double SortedSetDecrement(RedisKey key, RedisValue member, double value, CommandFlags flags = CommandFlags.None)
         {
-            
+            double result = _redisDb.SortedSetDecrement(key, member, value, flags);
 
+            PublishEvent(key, $"zdecr:{RedisValueHashCode.GetStableHashCode(member)}");
 
-
-            return _redisDb.SortedSetDecrement(key, member, value, flags);
+            return result;
         }
 
-        public Task<double> SortedSetDecrementAsync(RedisKey key, RedisValue member, double value, CommandFlags flags = CommandFlags.None)
+        public async Task<double> SortedSetDecrementAsync(RedisKey key, RedisValue member, double value, CommandFlags flags = CommandFlags.None)
         {
-            
+            double result = await _redisDb.SortedSetDecrementAsync(key, member, value, flags);
 
+            PublishEvent(key, $"zdecr:{RedisValueHashCode.GetStableHashCode(member)}");
 
-
-            return _redisDb.SortedSetDecrementAsync(key, member, value, flags);
+            return result;
         }
 
         public double SortedSetIncrement(RedisKey key, RedisValue member, double value, CommandFlags flags = CommandFlags.None)
         {
-            
+            double result = _redisDb.SortedSetIncrement(key, member, value, flags);
 
+            PublishEvent(key, $"zincr:{RedisValueHashCode.GetStableHashCode(member)}");
 
-
-            return _redisDb.SortedSetIncrement(key, member, value, flags);
+            return result;
         }
 
-        public Task<double> SortedSetIncrementAsync(RedisKey key, RedisValue member, double value, CommandFlags flags = CommandFlags.None)
+        public async Task<double> SortedSetIncrementAsync(RedisKey key, RedisValue member, double value, CommandFlags flags = CommandFlags.None)
         {
-            
+            double result = await _redisDb.SortedSetIncrementAsync(key, member, value, flags);
 
+            PublishEvent(key, $"zincr:{RedisValueHashCode.GetStableHashCode(member)}");
 
-
-            return _redisDb.SortedSetIncrementAsync(key, member, value, flags);
+            return result;
         }
 
         public long SortedSetLength(RedisKey key, double min = double.NegativeInfinity, double max = double.PositiveInfinity, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
@@ -1693,56 +1685,74 @@ namespace StackRedis.L1.Notifications
 
         public long SortedSetRemoveRangeByRank(RedisKey key, long start, long stop, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = _redisDb.SortedSetRemoveRangeByRank(key, start, stop, flags);
 
+            if(result > 0)
+            {
+                PublishEvent(key, $"zremrangebyrank:{start}-{stop}");
+            }
 
-
-            return _redisDb.SortedSetRemoveRangeByRank(key, start, stop, flags);
+            return result;
         }
 
-        public Task<long> SortedSetRemoveRangeByRankAsync(RedisKey key, long start, long stop, CommandFlags flags = CommandFlags.None)
+        public async Task<long> SortedSetRemoveRangeByRankAsync(RedisKey key, long start, long stop, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = await _redisDb.SortedSetRemoveRangeByRankAsync(key, start, stop, flags);
 
+            if (result > 0)
+            {
+                PublishEvent(key, $"zremrangebyrank:{start}-{stop}");
+            }
 
-
-            return _redisDb.SortedSetRemoveRangeByRankAsync(key, start, stop, flags);
+            return result;
         }
 
         public long SortedSetRemoveRangeByScore(RedisKey key, double start, double stop, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = _redisDb.SortedSetRemoveRangeByScore(key, start, stop, exclude, flags);
 
+            if(result > 0)
+            {
+                PublishEvent(key, $"zremrangebyscore:{start}-{stop}-{(int)exclude}");
+            }
 
-
-            return _redisDb.SortedSetRemoveRangeByScore(key, start, stop, exclude, flags);
+            return result;
         }
 
-        public Task<long> SortedSetRemoveRangeByScoreAsync(RedisKey key, double start, double stop, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
+        public async Task<long> SortedSetRemoveRangeByScoreAsync(RedisKey key, double start, double stop, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = await _redisDb.SortedSetRemoveRangeByScoreAsync(key, start, stop, exclude, flags);
 
+            if (result > 0)
+            {
+                PublishEvent(key, $"zremrangebyscore:{start}-{stop}-{(int)exclude}");
+            }
 
-
-            return _redisDb.SortedSetRemoveRangeByScoreAsync(key, start, stop, exclude, flags);
+            return result;
         }
 
         public long SortedSetRemoveRangeByValue(RedisKey key, RedisValue min, RedisValue max, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = _redisDb.SortedSetRemoveRangeByValue(key, min, max, exclude, flags);
 
+            if (result > 0)
+            {
+                PublishEvent(key, $"zremrangebylex");
+            }
 
-
-            return _redisDb.SortedSetRemoveRangeByValue(key, min, max, exclude, flags);
+            return result;
         }
 
-        public Task<long> SortedSetRemoveRangeByValueAsync(RedisKey key, RedisValue min, RedisValue max, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
+        public async Task<long> SortedSetRemoveRangeByValueAsync(RedisKey key, RedisValue min, RedisValue max, Exclude exclude = Exclude.None, CommandFlags flags = CommandFlags.None)
         {
-            
+            long result = await _redisDb.SortedSetRemoveRangeByValueAsync(key, min, max, exclude, flags);
 
+            if (result > 0)
+            {
+                PublishEvent(key, $"zremrangebylex");
+            }
 
-
-            return _redisDb.SortedSetRemoveRangeByValueAsync(key, min, max, exclude, flags);
+            return result;
         }
 
         public IEnumerable<SortedSetEntry> SortedSetScan(RedisKey key, RedisValue pattern, int pageSize, CommandFlags flags)

@@ -69,7 +69,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
 
         internal bool Remove(RedisValue entry)
         {
-            return _sortedSet.RemoveWhere(e => e.Element == entry) >= 0;
+            return _sortedSet.RemoveWhere(e => e.Element == entry) > 0;
         }
 
         internal bool Contains(RedisValue value)

@@ -250,8 +250,8 @@ namespace StackRedis.L1.Test.SortedSet
             //A set to merge all three
             set.Add(new[]
             {
-                new StackExchange.Redis.SortedSetEntry("carol", 5),
-                new StackExchange.Redis.SortedSetEntry("sue", 50)
+                new StackExchange.Redis.SortedSetEntry("emma", 5),
+                new StackExchange.Redis.SortedSetEntry("frank", 50)
             });
 
             Assert.AreEqual(7, set.RetrieveByScore(5, 50, Exclude.None).Count());

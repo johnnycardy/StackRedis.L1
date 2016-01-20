@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 namespace StackRedis.L1.Test.SortedSet
 {
     [TestClass]
-    public class SortedSet_Score : UnitTestBase
+    public class SortedSet_RemoveRangeByRank : UnitTestBase
     {
         [TestMethod]
-        public void SortedSet_Score_Cached()
+        public void SortedSet_RemoveRangeByRank_Cached()
         {
             _memDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
@@ -23,30 +23,36 @@ namespace StackRedis.L1.Test.SortedSet
             double? score = _memDb.SortedSetScore("key", "mem2");
             Assert.AreEqual(1, CallsByMemDb);
             Assert.AreEqual(2, score.Value);
+
+            _memDb.SortedSetRemoveRangeByRank("key", 1, 1); //0-based index
+            Assert.AreEqual(2, CallsByMemDb);
+
+            score = _memDb.SortedSetScore("key", "mem2");
+            Assert.AreEqual(3, CallsByMemDb);
+            Assert.IsFalse(score.HasValue);
         }
 
         [TestMethod]
-        public void SortedSet_Score_NotCached()
+        public async Task SortedSet_RemoveRangeByRank_OtherClient()
         {
-            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+            _memDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
             });
-            Assert.AreEqual(0, CallsByMemDb);
+            Assert.AreEqual(1, CallsByMemDb);
 
             double? score = _memDb.SortedSetScore("key", "mem2");
-            Assert.AreEqual(1, CallsByMemDb); //Had to go to server
-            Assert.AreEqual(2, score.Value);
-            
-            score = _memDb.SortedSetScore("key", "mem2");
-            Assert.AreEqual(1, CallsByMemDb); //Didn't need to go to server
+            Assert.AreEqual(1, CallsByMemDb);
             Assert.AreEqual(2, score.Value);
 
-            //Now the whole entry is cached, too
-            var range = _memDb.SortedSetRangeByScore("key", 2, 2);
-            Assert.AreEqual(1, range.Count());
-            Assert.AreEqual(1, CallsByMemDb);
+            _otherClientDb.SortedSetRemoveRangeByRank("key", 1, 1); //0-based index
+
+            await Task.Delay(50);
+
+            score = _memDb.SortedSetScore("key", "mem2");
+            Assert.AreEqual(2, CallsByMemDb);
+            Assert.IsFalse(score.HasValue);
         }
     }
 }

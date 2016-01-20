@@ -81,19 +81,19 @@ namespace StackRedis.L1.KeyspaceNotifications
                 eventArg = eventType.Substring(eventName.Length + 1);
             }
 
-            if (eventName == "hset" || eventName == "hdel" || 
-                eventName == "hincr" || eventName == "hincrbyfloat"|| 
+            if (eventName == "hset" || eventName == "hdel" ||
+                eventName == "hincr" || eventName == "hincrbyfloat" ||
                 eventName == "hdecr" || eventName == "hdecrbyfloat")
             {
                 //eventArg is the hash entry name. Since it has changed, remove it.
                 dbData.MemoryHashes.Delete(key, new[] { (RedisValue)eventArg });
             }
-            else if(eventName == "srem")
+            else if (eventName == "srem")
             {
                 //Removing an item from a set.
                 dbData.MemorySets.RemoveByHashCode(key, new[] { eventArg });
             }
-            else if(eventName == "zadd")
+            else if (eventName == "zadd")
             {
                 //An item is added to a sorted set. We should remove it from its current location if it's already there.
                 int hashCode;
@@ -102,7 +102,7 @@ namespace StackRedis.L1.KeyspaceNotifications
                     dbData.MemorySortedSets.RemoveByHashCode(key, hashCode);
                 }
             }
-            else if(eventName == "zrem")
+            else if (eventName == "zrem" || eventName == "zincr" || eventName == "zdecr")
             {
                 //An item is removed from a sorted set.
                 int hashCode;
@@ -111,12 +111,28 @@ namespace StackRedis.L1.KeyspaceNotifications
                     dbData.MemorySortedSets.RemoveByHashCode(key, hashCode);
                 }
             }
+            else if (eventName == "zremrangebyscore")
+            {
+                if (!string.IsNullOrEmpty(eventArg))
+                {
+                    string[] scores = eventArg.Split('-');
+                    if(scores.Length == 3)
+                    {
+                        double start, stop;
+                        int exclude;
+                        if(double.TryParse(scores[0], out start) && double.TryParse(scores[1], out stop) && int.TryParse(scores[2], out exclude))
+                        {
+                            dbData.MemorySortedSets.DeleteByScore(key, start, stop, (Exclude)exclude);
+                        }
+                    }
+                }
+            }
             else if (eventName == "del")
             {
                 //A key was removed
                 dbData.MemoryCache.Remove(new[] { key });
             }
-            else if(eventName == "expire")
+            else if (eventName == "expire")
             {
                 //The TTL has changed - clear it in memory
                 dbData.MemoryCache.ClearTimeToLive(key);
@@ -140,6 +156,11 @@ namespace StackRedis.L1.KeyspaceNotifications
                     eventName == "append")
             {
                 //Many string operations are not performed in-memory, so the key needs to be invalidated and we go back to redis for the result.
+                dbData.MemoryCache.Remove(new[] { key });
+            }
+            else if (eventName == "zremrangebyrank" || eventName == "zremrangebylex")
+            {
+                //Many sorted set operations are not performed in-memory, so the key needs to be invalidated and we go back to redis for the result.
                 dbData.MemoryCache.Remove(new[] { key });
             }
         }

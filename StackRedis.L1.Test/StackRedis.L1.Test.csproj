@@ -93,9 +93,14 @@
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RetrieveScoreByValue.cs" />
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Sorting.cs" />
     <Compile Include="SortedSet\SortedSet_Add.cs" />
+    <Compile Include="SortedSet\SortedSet_Increment.cs" />
+    <Compile Include="SortedSet\SortedSet_Decrement.cs" />
     <Compile Include="SortedSet\SortedSet_RangeByScore.cs" />
     <Compile Include="SortedSet\SortedSet_RangeByScoreWithScores.cs" />
     <Compile Include="SortedSet\SortedSet_Remove.cs" />
+    <Compile Include="SortedSet\SortedSet_RemoveRangeByValue.cs" />
+    <Compile Include="SortedSet\SortedSet_RemoveRangeByRank.cs" />
+    <Compile Include="SortedSet\SortedSet_RemoveRangeByScore.cs" />
     <Compile Include="SortedSet\SortedSet_Score.cs" />
     <Compile Include="String\StringGetAsync.cs" />
     <Compile Include="String\StringGet.cs" />

@@ -148,10 +148,14 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             var set = GetSortedSet(key);
             if (set != null)
             {
-                var existingScore = set.RetrieveScoreByValue(member).GetValueOrDefault(0);
-                var newScore = existingScore + value;
+                var existingScore = set.RetrieveScoreByValue(member);
+                var newScore = existingScore.GetValueOrDefault(0) + value;
 
-                //the existing member gets replaced
+                if (existingScore.HasValue)
+                {
+                    set.Remove(new[] { member });
+                }
+
                 set.Add(new[] { new SortedSetEntry(member, newScore) });
             }
         }
@@ -161,10 +165,14 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             var set = GetSortedSet(key);
             if(set != null)
             {
-                var existingScore = set.RetrieveScoreByValue(member).GetValueOrDefault(0);
-                var newScore = existingScore - value;
+                var existingScore = set.RetrieveScoreByValue(member);
+                var newScore = existingScore.GetValueOrDefault(0) - value;
 
-                //the existing member gets replaced
+                if (existingScore.HasValue)
+                {
+                    set.Remove(new[] { member });
+                }
+
                 set.Add(new[] { new SortedSetEntry(member, newScore) });
             }
         }
