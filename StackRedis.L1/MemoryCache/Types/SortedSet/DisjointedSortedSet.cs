@@ -18,6 +18,8 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         private SortedSet<SortedSetRange> _ranges;
         private object _opLockObj = new object();
 
+        private List<string> _markers = new List<string>();
+
         /// <summary>
         /// Gets the total number of values stored in memory.
         /// </summary>
@@ -84,11 +86,36 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             }
         }
 
+        private SortedSetEntry GetMarker(double score)
+        {
+            string marker = Guid.NewGuid().ToString();
+            _markers.Add(marker);
+            return new SortedSetEntry(marker, score);
+        }
+
         /// <summary>
         /// Adds what is assumed to be continuous range of entries, as returned by a redis call.
         /// Items from the array that are already present will be ignored.
+        /// Spanned existing ranges will be joined.
+        internal void Add(SortedSetEntry[] entries)
+        {
+            if (entries.Any())
+            {
+                double min = entries.First().Score;
+                double max = entries.Last().Score;
+
+                Add(entries, min, max);
+            }
+        }
+        
+        /// <summary>
+        /// Adds what is assumed to be continuous range of entries, as returned by a redis call.
+        /// Items from the array that are already present will be ignored.
+        /// Spanned existing ranges will be joined.
+        /// the knownMin and knownMax can be smaller than the smallest score and larger than the largest score, respectively.
+        /// - it will then be recorded that those are the real bounds.
         /// </summary>
-        internal void Add(SortedSetEntry[] sortedContinuousEntries)
+        internal void Add(SortedSetEntry[] entries, double knownMin, double knownMax)
         {
             //Precondition: no two existing ranges contain overlapping scores.
 
@@ -96,20 +123,23 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
 
             lock(_opLockObj)
             {
-                if (sortedContinuousEntries != null && sortedContinuousEntries.Any())
+                if (entries != null && entries.Any())
                 {
                     //Remove the items from existing ranges
-                    foreach (var entry in sortedContinuousEntries)
-                    {
-                        foreach (var range in _ranges)
-                        {
-                            if (range.Remove(entry.Element))
-                                break;
-                        }
-                    }
+                    Remove(entries.Select(e => e.Element).ToArray());
 
-                    double firstNewScore = sortedContinuousEntries.First().Score;
-                    double lastNewScore = sortedContinuousEntries.Last().Score;
+                    double firstNewScore = entries.First().Score;
+                    double lastNewScore = entries.Last().Score;
+
+                    List<SortedSetEntry> sortedContinuousEntries = entries.ToList();
+
+                    //Add a dummy minimum item
+                    if (firstNewScore > knownMin)
+                        sortedContinuousEntries.Insert(0, GetMarker(knownMin));
+
+                    //Add a dummy maximum item
+                    if (lastNewScore < knownMax)
+                        sortedContinuousEntries.Add(GetMarker(knownMax));
 
                     //Find all of the current ranges which will be merged by this new range
                     foreach (SortedSetRange range in _ranges)
@@ -124,21 +154,22 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                             rangesToMerge.Add(range);
                         }
                     }
-                }
+                    
+                    if (rangesToMerge.Any())
+                    {
+                        //Add all the new elements to the first range
+                        foreach (SortedSetEntry entry in sortedContinuousEntries)
+                            rangesToMerge.First().Add(entry);
 
-                if (rangesToMerge.Any())
-                {
-                    //Add all the new elements to the first range
-                    foreach (SortedSetEntry entry in sortedContinuousEntries)
-                        rangesToMerge.First().Add(entry);
-
-                    //Now merge all the contents of the subsequent ranges back into the first.
-                    foreach (SortedSetEntry entry in rangesToMerge.Skip(1).SelectMany(r => r.Elements))
-                        rangesToMerge.First().Add(entry);
-                }
-                else
-                {
-                    _ranges.Add(new SortedSetRange(sortedContinuousEntries));
+                        //Now merge all the contents of the subsequent ranges back into the first.
+                        foreach (SortedSetEntry entry in rangesToMerge.Skip(1).SelectMany(r => r.Elements))
+                            rangesToMerge.First().Add(entry);
+                    }
+                    else
+                    {
+                        //In this case there are no suitable ranges so create a new one.
+                        _ranges.Add(new SortedSetRange(sortedContinuousEntries));
+                    }
                 }
             }
         }
@@ -193,6 +224,13 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                                 _ranges.Remove(range);
                                 break;
                             }
+
+                            //If the range only contains markers...
+                            if(range.Count < _markers.Count && range.Elements.All(e => _markers.Contains(e.Element)))
+                            {
+                                _ranges.Remove(range);
+                                break;
+                            }
                         }
                     }
 
@@ -241,7 +279,8 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                 {
                     if (range.ScoreBelongs(start) && range.ScoreBelongs(end))
                     {
-                        return range.Subrange(start, end, exclude);
+                        return range.Subrange(start, end, exclude)
+                                    .Where(e => !_markers.Contains(e.Element));
                     }
                 }
                 return null;

@@ -16,26 +16,30 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         {
             _objMemCache = objMemCache;
         }
-
+        
         /// <summary>
-        /// Adds entries which are *not* assumed to be continuous.
+        /// Adds values for which it is not known whether or not they are continuous.
         /// </summary>
-        internal void Add(string key, SortedSetEntry[] entries, bool itemsAreContinuous)
+        internal void AddDiscontinuous(string key, SortedSetEntry[] entries)
         {
             var set = GetSortedSet(key);
             if (set == null)
                 set = SetSortedSet(key);
 
-            if (itemsAreContinuous)
-            {
-                set.Add(entries);
-            }
-            else
-            {
-                //Add them separately as we don't know if they're continuous
-                foreach (var entry in entries)
-                    set.Add(new[] { entry });
-            }
+            foreach (var entry in entries)
+                set.Add(new[] { entry }, entry.Score, entry.Score);
+        }
+
+        /// <summary>
+        /// Adds entries which are known to be continuous.
+        /// </summary>
+        internal void AddContinuous(string key, SortedSetEntry[] entries, double knownMin, double knownMax)
+        {
+            var set = GetSortedSet(key);
+            if (set == null)
+                set = SetSortedSet(key);
+
+            set.Add(entries, knownMin, knownMax);
         }
 
         /// <summary>
@@ -156,7 +160,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                     set.Remove(new[] { member });
                 }
 
-                set.Add(new[] { new SortedSetEntry(member, newScore) });
+                set.Add(new[] { new SortedSetEntry(member, newScore) }, newScore, newScore);
             }
         }
 
@@ -173,7 +177,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                     set.Remove(new[] { member });
                 }
 
-                set.Add(new[] { new SortedSetEntry(member, newScore) });
+                set.Add(new[] { new SortedSetEntry(member, newScore) }, newScore, newScore);
             }
         }
     }

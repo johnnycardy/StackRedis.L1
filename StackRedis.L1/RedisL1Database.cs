@@ -1580,7 +1580,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            _dbData.MemorySortedSets.Add(key, values, false);
+            _dbData.MemorySortedSets.AddDiscontinuous(key, values);
 
             return _redisDb.SortedSetAdd(key, values, flags);
         }
@@ -1590,7 +1590,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score) }, false);
+            _dbData.MemorySortedSets.AddDiscontinuous(key, new[] { new SortedSetEntry(member, score) });
 
             return _redisDb.SortedSetAdd(key, member, score, flags);
         }
@@ -1600,7 +1600,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            _dbData.MemorySortedSets.Add(key, values, false);
+            _dbData.MemorySortedSets.AddDiscontinuous(key, values);
 
             return _redisDb.SortedSetAddAsync(key, values, flags);
         }
@@ -1610,7 +1610,7 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score) }, false);
+            _dbData.MemorySortedSets.AddDiscontinuous(key, new[] { new SortedSetEntry(member, score) });
 
             return _redisDb.SortedSetAddAsync(key, member, score, flags);
         }
@@ -1745,7 +1745,7 @@ namespace StackRedis.L1
 
             var result = _redisDb.SortedSetRangeByRankWithScores(key, start, stop, order, flags);
 
-            _dbData.MemorySortedSets.Add(key, result, false);
+            _dbData.MemorySortedSets.AddDiscontinuous(key, result);
 
             return result;
         }
@@ -1757,7 +1757,7 @@ namespace StackRedis.L1
 
             var result = await _redisDb.SortedSetRangeByRankWithScoresAsync(key, start, stop, order, flags);
 
-            _dbData.MemorySortedSets.Add(key, result, false);
+            _dbData.MemorySortedSets.AddDiscontinuous(key, result);
 
             return result;
         }
@@ -1811,7 +1811,7 @@ namespace StackRedis.L1
             else
             {
                 var resultArr = _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
-                _dbData.MemorySortedSets.Add(key, resultArr, true);
+                _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
                 return resultArr;
             }
         }
@@ -1829,7 +1829,7 @@ namespace StackRedis.L1
             else
             {
                 var resultArr = await _redisDb.SortedSetRangeByScoreWithScoresAsync(key, start, stop, exclude, order, skip, take, flags);
-                _dbData.MemorySortedSets.Add(key, resultArr, true);
+                _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
                 return resultArr;
             }
         }
@@ -1972,7 +1972,7 @@ namespace StackRedis.L1
 
             foreach(var resultEntry in _redisDb.SortedSetScan(key, pattern, pageSize, flags))
             {
-                _dbData.MemorySortedSets.Add(key, new[] { resultEntry }, false);
+                _dbData.MemorySortedSets.AddDiscontinuous(key, new[] { resultEntry });
 
                 yield return resultEntry;
             }
@@ -1985,7 +1985,7 @@ namespace StackRedis.L1
 
             foreach (var resultEntry in _redisDb.SortedSetScan(key, pattern, pageSize, cursor, pageOffset, flags))
             {
-                _dbData.MemorySortedSets.Add(key, new[] { resultEntry }, false);
+                _dbData.MemorySortedSets.AddDiscontinuous(key, new[] { resultEntry });
 
                 yield return resultEntry;
             }
@@ -2010,7 +2010,7 @@ namespace StackRedis.L1
                 if (score.HasValue)
                 {
                     //Cache it
-                    _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score.Value) }, true);
+                    _dbData.MemorySortedSets.AddContinuous(key, new[] { new SortedSetEntry(member, score.Value) }, score.Value, score.Value);
                 }
 
                 return score;
@@ -2034,7 +2034,7 @@ namespace StackRedis.L1
                 if (score.HasValue)
                 {
                     //Cache it
-                    _dbData.MemorySortedSets.Add(key, new[] { new SortedSetEntry(member, score.Value) }, true);
+                    _dbData.MemorySortedSets.AddContinuous(key, new[] { new SortedSetEntry(member, score.Value) }, score.Value, score.Value);
                 }
 
                 return score;

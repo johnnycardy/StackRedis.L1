@@ -28,6 +28,5 @@ namespace StackRedis.L1.Test.SortedSet
             Assert.AreEqual(2, result.Count());
             Assert.AreEqual(2, CallsByMemDb); //Now the cache DB does know that 1 and 2 are continuous.
         }
-
     }
 }

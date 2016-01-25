@@ -66,6 +66,72 @@ namespace StackRedis.L1.Test.SortedSet
             _memDb.SortedSetAdd("key", "mem1", 1.5);
             val = _memDb.SortedSetRangeByScore("key", 1, 1.5);
             Assert.AreEqual("mem1", (string)val.Single()); //There should be no element with value 1
-        } 
+        }
+
+        //select range between 0 - 10, items 2 - 7 returned, but 0-10 is cached for next time (Maybe with dummy items?)
+        [TestMethod]
+        public void SortedSet_RangeByScore_CachingOutsideRange()
+        {
+            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+            {
+                new StackExchange.Redis.SortedSetEntry("mem1", 1),
+                new StackExchange.Redis.SortedSetEntry("mem2", 2),
+                new StackExchange.Redis.SortedSetEntry("mem3", 3),
+            });
+
+            var result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 4);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Call again - it should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 3);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Add another item inside this cached range
+            _memDb.SortedSetAdd("key", "mem0", 0);
+            Assert.AreEqual(2, CallsByMemDb);
+
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 3);
+            Assert.AreEqual(4, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+        }
+
+        [TestMethod]
+        public void SortedSet_RangeByInfinity()
+        {
+            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+            {
+                new StackExchange.Redis.SortedSetEntry("mem1", 1),
+                new StackExchange.Redis.SortedSetEntry("mem2", 2),
+                new StackExchange.Redis.SortedSetEntry("mem3", 3),
+            });
+            var result = _memDb.SortedSetRangeByScoreWithScores("key");
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            result = _memDb.SortedSetRangeByScoreWithScores("key");
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+        }
+
+        [TestMethod]
+        public void SortedSet_RangeEmpty()
+        {
+            var result = _memDb.SortedSetRangeByScoreWithScores("key");
+            Assert.AreEqual(0, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            result = _memDb.SortedSetRangeByScoreWithScores("key");
+            Assert.AreEqual(0, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+        }
+
+        //When 'take' is specified, the upper bound needs to be ignored with regard to caching.
+        [TestMethod]
+        public void SortedSet_RangeInfinity_TakeSubset()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
