@@ -1765,10 +1765,13 @@ namespace StackRedis.L1
         //Does not cache the result since scores are not returned
         public RedisValue[] SortedSetRangeByScore(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
         {
-            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
-            if (result != null)
-                return result.Select(e => e.Element).ToArray();
-            
+            if (skip <= int.MaxValue && take <= int.MaxValue)
+            {
+                var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+                if (result != null)
+                    return result.Select(e => e.Element).ToArray();
+            }
+
             if (_redisDb == null)
                 throw new NotImplementedException();
 
@@ -1783,9 +1786,13 @@ namespace StackRedis.L1
         //Does not cache the result since scores are not returned
         public async Task<RedisValue[]> SortedSetRangeByScoreAsync(RedisKey key, double start = double.NegativeInfinity, double stop = double.PositiveInfinity, Exclude exclude = Exclude.None, Order order = Order.Ascending, long skip = 0, long take = -1, CommandFlags flags = CommandFlags.None)
         {
-            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
-            if (result != null)
-                return result.Select(e => e.Element).ToArray();
+            //Can't use skip and take if they're larger than int.maxvalue
+            if (skip <= int.MaxValue && take <= int.MaxValue)
+            {
+                var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+                if (result != null)
+                    return result.Select(e => e.Element).ToArray();
+            }
 
             if (_redisDb == null)
                 throw new NotImplementedException();
@@ -1803,7 +1810,12 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
+            IEnumerable<SortedSetEntry> result = null;
+            if (skip <= int.MaxValue && take <= int.MaxValue)
+            {
+                result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+            }
+
             if (result != null)
             {
                 return result.ToArray();
@@ -1811,7 +1823,16 @@ namespace StackRedis.L1
             else
             {
                 var resultArr = _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
-                _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
+
+                //We can only use the supplied start if skip is 0
+                double? startNullable = null;
+                if (skip == 0) startNullable = start;
+
+                //We can only use the supplied stop if take is -1
+                double? stopNullable = null;
+                if (take == -1) stopNullable = stop;
+
+                _dbData.MemorySortedSets.AddContinuous(key, resultArr, startNullable, stopNullable);
                 return resultArr;
             }
         }
@@ -1821,7 +1842,12 @@ namespace StackRedis.L1
             if (_redisDb == null)
                 throw new NotImplementedException();
 
-            var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude);
+            IEnumerable<SortedSetEntry> result = null;
+            if (skip <= int.MaxValue && take <= int.MaxValue)
+            {
+                result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+            }
+
             if (result != null)
             {
                 return result.ToArray();
@@ -1829,7 +1855,17 @@ namespace StackRedis.L1
             else
             {
                 var resultArr = await _redisDb.SortedSetRangeByScoreWithScoresAsync(key, start, stop, exclude, order, skip, take, flags);
-                _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
+
+                //We can only use the supplied start if skip is 0
+                double? startNullable = null;
+                if (skip == 0) startNullable = start;
+
+                //We can only use the supplied stop if take is -1
+                double? stopNullable = null;
+                if (take == -1) stopNullable = stop;
+
+                _dbData.MemorySortedSets.AddContinuous(key, resultArr, startNullable, stopNullable);
+
                 return resultArr;
             }
         }

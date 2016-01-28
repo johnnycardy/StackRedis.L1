@@ -33,7 +33,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         /// <summary>
         /// Adds entries which are known to be continuous.
         /// </summary>
-        internal void AddContinuous(string key, SortedSetEntry[] entries, double knownMin, double knownMax)
+        internal void AddContinuous(string key, SortedSetEntry[] entries, double? knownMin, double? knownMax)
         {
             var set = GetSortedSet(key);
             if (set == null)
@@ -116,12 +116,12 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             return null;
         }
 
-        internal IEnumerable<SortedSetEntry> GetByScore(string key, double start, double end, Exclude exclude)
+        internal IEnumerable<SortedSetEntry> GetByScore(string key, double start, double end, Exclude exclude, int skip, int take)
         {
             var set = GetSortedSet(key);
             if (set != null)
             {
-                return set.RetrieveByScore(start, end, exclude);
+                return set.RetrieveByScore(start, end, exclude, skip, take);
             }
 
             return null;

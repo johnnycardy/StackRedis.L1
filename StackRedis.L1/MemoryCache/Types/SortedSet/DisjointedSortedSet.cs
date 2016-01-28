@@ -82,6 +82,13 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                     }
 
                     _ranges.Add(monsterRange);
+
+                    //Any markers not at the start or the end should be discarded
+                    foreach(var value in monsterRange.Elements.Skip(1).Take(monsterRange.Count- 2))
+                    {
+                        if (_markers.Contains(value.Element))
+                            monsterRange.Remove(value.Element);
+                    }
                 }
             }
         }
@@ -115,7 +122,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         /// the knownMin and knownMax can be smaller than the smallest score and larger than the largest score, respectively.
         /// - it will then be recorded that those are the real bounds.
         /// </summary>
-        internal void Add(SortedSetEntry[] entries, double knownMin, double knownMax)
+        internal void Add(SortedSetEntry[] entries, double? knownMin, double? knownMax)
         {
             //Precondition: no two existing ranges contain overlapping scores.
 
@@ -125,21 +132,18 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             {
                 if (entries != null && entries.Any())
                 {
-                    //Remove the items from existing ranges
-                    Remove(entries.Select(e => e.Element).ToArray());
-
                     double firstNewScore = entries.First().Score;
                     double lastNewScore = entries.Last().Score;
 
                     List<SortedSetEntry> sortedContinuousEntries = entries.ToList();
 
                     //Add a dummy minimum item
-                    if (firstNewScore > knownMin)
-                        sortedContinuousEntries.Insert(0, GetMarker(knownMin));
+                    if (knownMin.HasValue && firstNewScore > knownMin.Value)
+                        sortedContinuousEntries.Insert(0, GetMarker(knownMin.Value));
 
                     //Add a dummy maximum item
-                    if (lastNewScore < knownMax)
-                        sortedContinuousEntries.Add(GetMarker(knownMax));
+                    if (knownMax.HasValue && lastNewScore < knownMax)
+                        sortedContinuousEntries.Add(GetMarker(knownMax.Value));
 
                     //Find all of the current ranges which will be merged by this new range
                     foreach (SortedSetRange range in _ranges)
@@ -154,7 +158,10 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                             rangesToMerge.Add(range);
                         }
                     }
-                    
+
+                    //Remove the items from existing ranges
+                    Remove(entries.Select(e => e.Element).ToArray());
+
                     if (rangesToMerge.Any())
                     {
                         //Add all the new elements to the first range
@@ -164,6 +171,9 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                         //Now merge all the contents of the subsequent ranges back into the first.
                         foreach (SortedSetEntry entry in rangesToMerge.Skip(1).SelectMany(r => r.Elements))
                             rangesToMerge.First().Add(entry);
+
+                        if (!_ranges.Contains(rangesToMerge.First()))
+                            _ranges.Add(rangesToMerge.First());
                     }
                     else
                     {
@@ -226,7 +236,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                             }
 
                             //If the range only contains markers...
-                            if(range.Count < _markers.Count && range.Elements.All(e => _markers.Contains(e.Element)))
+                            if(range.Count <= _markers.Count && range.Elements.All(e => _markers.Contains(e.Element)))
                             {
                                 _ranges.Remove(range);
                                 break;
@@ -271,16 +281,32 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         /// If there is a continuous range in memory which includes the given scores, then it is returned - even if that is an empty range.
         /// Otherwise null is returned.
         /// </summary>
-        internal IEnumerable<SortedSetEntry> RetrieveByScore(double start, double end, Exclude exclude)
+        internal IEnumerable<SortedSetEntry> RetrieveByScore(double start, double end, Exclude exclude, int skip = 0, int take = -1)
         {
             lock(_opLockObj)
             {
                 foreach (var range in _ranges)
                 {
-                    if (range.ScoreBelongs(start) && range.ScoreBelongs(end))
+                    if (range.ScoreBelongs(start))
                     {
-                        return range.Subrange(start, end, exclude)
-                                    .Where(e => !_markers.Contains(e.Element));
+                        var result = range.Subrange(start, end, exclude)
+                                        .Where(e => !_markers.Contains(e.Element))
+                                        .Skip(skip).ToArray();
+
+                        if(take >= 0)
+                        {
+                            result = result.Take(take).ToArray();
+                        }
+
+                        if (range.ScoreBelongs(end))
+                        {
+                            return result;
+                        }
+                        else if(range.ScoreEnd < end && result.Length == take)
+                        { 
+                            //If we were able to get enough items within this range even though it didn't meet the end score.
+                            return result;
+                        }
                     }
                 }
                 return null;

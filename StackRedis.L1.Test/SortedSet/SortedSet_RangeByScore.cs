@@ -131,7 +131,77 @@ namespace StackRedis.L1.Test.SortedSet
         [TestMethod]
         public void SortedSet_RangeInfinity_TakeSubset()
         {
-            throw new NotImplementedException();
+            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+               {
+                new StackExchange.Redis.SortedSetEntry("mem1", 1),
+                new StackExchange.Redis.SortedSetEntry("mem2", 2),
+                new StackExchange.Redis.SortedSetEntry("mem3", 3),
+               });
+
+            var result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 2);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //First page of 2 should be cached....
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 2);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //First page of 100 should not be cached...
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+
+            //Now it should be
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+        }
+
+        [TestMethod]
+        public void SortedSet_RangeInfinity_Skip()
+        {
+            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+               {
+                new StackExchange.Redis.SortedSetEntry("mem1", 1),
+                new StackExchange.Redis.SortedSetEntry("mem2", 2),
+                new StackExchange.Redis.SortedSetEntry("mem3", 3),
+               });
+
+            //skip 1 take all
+            var result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 1);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Can't be cached since skip was nonzero
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 1);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+
+            //Skip 0 this time and take 2
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 2);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(3, CallsByMemDb);
+
+            //Should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 2);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(3, CallsByMemDb);
+
+            //skip 2 and take 1 - should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 2, 1);
+            Assert.AreEqual(1, result.Count());
+             Assert.AreEqual(3, CallsByMemDb);
+
+            //Skip 0 and take 3 - should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 3);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(3, CallsByMemDb);
+
+            //Retrieve all between 0 and 100 - should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(3, CallsByMemDb);
         }
     }
 }
