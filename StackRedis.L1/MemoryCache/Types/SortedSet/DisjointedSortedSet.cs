@@ -298,14 +298,18 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                             result = result.Take(take).ToArray();
                         }
 
-                        if (range.ScoreBelongs(end))
+                        if (range.ScoreBelongs(end) && take == -1)
                         {
                             return result;
                         }
-                        else if(range.ScoreEnd < end && result.Length == take)
+                        else if(range.ScoreEnd <= end && result.Length == take)
                         { 
-                            //If we were able to get enough items within this range even though it didn't meet the end score.
+                            //If we were able to get the requested no. of items (take) within this range even though it didn't meet the end score.
                             return result;
+                        }
+                        else
+                        {
+                            return null;
                         }
                     }
                 }

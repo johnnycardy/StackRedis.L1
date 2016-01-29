@@ -188,20 +188,79 @@ namespace StackRedis.L1.Test.SortedSet
             Assert.AreEqual(2, result.Count());
             Assert.AreEqual(3, CallsByMemDb);
 
-            //skip 2 and take 1 - should be cached
+            //skip 2 and take 1
             result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 2, 1);
             Assert.AreEqual(1, result.Count());
-             Assert.AreEqual(3, CallsByMemDb);
+             Assert.AreEqual(4, CallsByMemDb);
 
-            //Skip 0 and take 3 - should be cached
+            //Skip 0 and take 3
             result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 3);
             Assert.AreEqual(3, result.Count());
-            Assert.AreEqual(3, CallsByMemDb);
+            Assert.AreEqual(5, CallsByMemDb);
 
-            //Retrieve all between 0 and 100 - should be cached
+            //Retrieve all between 0 and 100
             result = _memDb.SortedSetRangeByScoreWithScores("key", 0, 100, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending);
             Assert.AreEqual(3, result.Count());
-            Assert.AreEqual(3, CallsByMemDb);
+            Assert.AreEqual(6, CallsByMemDb);
+        }
+
+        [TestMethod]
+        public void SortedSet_RangeByScore_MultipleDuplicateScores_Take()
+        {
+            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+               {
+                new StackExchange.Redis.SortedSetEntry("mem1", 1),
+                new StackExchange.Redis.SortedSetEntry("mem2", 1),
+                new StackExchange.Redis.SortedSetEntry("mem3", 1),
+                new StackExchange.Redis.SortedSetEntry("mem4", 1),
+                new StackExchange.Redis.SortedSetEntry("mem5", 1),
+                new StackExchange.Redis.SortedSetEntry("mem6", 1)
+               });
+
+            var result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 1, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 3);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Same number of results - should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 1, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 3);
+            Assert.AreEqual(3, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Smaller page size - should be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 1, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 2);
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+
+            //Larger page size - should not be cached
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 1, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0, 4);
+            Assert.AreEqual(4, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+        }
+
+        [TestMethod]
+        public void SortedSet_RangeByScore_MultipleDuplicateScores_Skip()
+        {
+            _redisDirectDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
+            {
+                new StackExchange.Redis.SortedSetEntry("mem1", 1),
+                new StackExchange.Redis.SortedSetEntry("mem2", 1),
+                new StackExchange.Redis.SortedSetEntry("mem3", 1),
+                new StackExchange.Redis.SortedSetEntry("mem4", 1),
+                new StackExchange.Redis.SortedSetEntry("mem5", 1),
+                new StackExchange.Redis.SortedSetEntry("mem6", 1)
+            });
+
+            //Skip 2
+            var result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 1, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 2);
+            Assert.AreEqual(4, result.Count());
+            Assert.AreEqual(1, CallsByMemDb);
+            Assert.AreEqual("mem3", (string)result.First().Element);
+            
+            //Skip 0
+            result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 1, StackExchange.Redis.Exclude.None, StackExchange.Redis.Order.Ascending, 0);
+            Assert.AreEqual(6, result.Count());
+            Assert.AreEqual(2, CallsByMemDb);
+            Assert.AreEqual("mem1", (string)result.First().Element);
         }
     }
 }

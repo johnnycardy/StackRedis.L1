@@ -1825,14 +1825,18 @@ namespace StackRedis.L1
                 var resultArr = _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
 
                 //We can only use the supplied start if skip is 0
-                double? startNullable = null;
-                if (skip == 0) startNullable = start;
+                double? startNullable = start;
 
                 //We can only use the supplied stop if take is -1
                 double? stopNullable = null;
                 if (take == -1) stopNullable = stop;
 
-                _dbData.MemorySortedSets.AddContinuous(key, resultArr, startNullable, stopNullable);
+                //It's too hard to cache when skip is nonzero.
+                if (skip == 0)
+                {
+                    _dbData.MemorySortedSets.AddContinuous(key, resultArr, startNullable, stopNullable);
+                }
+
                 return resultArr;
             }
         }
