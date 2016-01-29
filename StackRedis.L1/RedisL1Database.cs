@@ -1823,18 +1823,11 @@ namespace StackRedis.L1
             else
             {
                 var resultArr = _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
-
-                //We can only use the supplied start if skip is 0
-                double? startNullable = start;
-
-                //We can only use the supplied stop if take is -1
-                double? stopNullable = null;
-                if (take == -1) stopNullable = stop;
-
-                //It's too hard to cache when skip is nonzero.
-                if (skip == 0)
+                
+                //It's too hard to cache when skip or take are specified.
+                if (skip == 0 && take == -1)
                 {
-                    _dbData.MemorySortedSets.AddContinuous(key, resultArr, startNullable, stopNullable);
+                    _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
                 }
 
                 return resultArr;
@@ -1859,16 +1852,12 @@ namespace StackRedis.L1
             else
             {
                 var resultArr = await _redisDb.SortedSetRangeByScoreWithScoresAsync(key, start, stop, exclude, order, skip, take, flags);
-
-                //We can only use the supplied start if skip is 0
-                double? startNullable = null;
-                if (skip == 0) startNullable = start;
-
-                //We can only use the supplied stop if take is -1
-                double? stopNullable = null;
-                if (take == -1) stopNullable = stop;
-
-                _dbData.MemorySortedSets.AddContinuous(key, resultArr, startNullable, stopNullable);
+                
+                //It's too hard to cache when skip or take are specified.
+                if (skip == 0 && take == -1)
+                {
+                    _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
+                }
 
                 return resultArr;
             }
