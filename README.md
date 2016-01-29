@@ -44,7 +44,7 @@ The `Hash` type is fully accelerated with a `Dictionary` used for storage.
 The `Set` type is heavily accelerated using a `HashSet` used for in-memory storage.
 
 **SortedSet**
-`SortedSet` operations involving `score` are currently accelerated. This is done using the concept of 'disjointed sets' in memory - a collection of sorted subsets of the full sorted set. It would be possible to use the same technique to accelerate calls involving Rank.
+`SortedSet` operations involving `score` are currently accelerated. This is done using the concept of 'disjointed sets' in memory - a collection of sorted subsets of the full sorted set. It would be possible to use the same technique to accelerate calls involving Rank, but this isn't implemented. Use `SortedSetRangeByScoreWithScores` for best caching performance. Note however that specifying 'skip' or 'take' prevents results being cached.
 
 **List**
 The `List` type is not accelerated, as it cannot be cached meaningfully in memory. This is because operations generally involve the head or the tail of the list, and we cannot know whether or not we have the head or tail in memory. Most operations would involve invalidating the entire list data and so there would be little benefit. All `List` operations are passed through directly to Redis.
