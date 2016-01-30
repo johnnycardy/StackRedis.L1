@@ -116,12 +116,12 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
             return null;
         }
 
-        internal IEnumerable<SortedSetEntry> GetByScore(string key, double start, double end, Exclude exclude, int skip, int take)
+        internal IEnumerable<SortedSetEntry> GetByScore(string key, double start, double end, Exclude exclude, Order order, int skip, int take)
         {
             var set = GetSortedSet(key);
             if (set != null)
             {
-                return set.RetrieveByScore(start, end, exclude, skip, take);
+                return set.RetrieveByScore(start, end, exclude, order, skip, take);
             }
 
             return null;

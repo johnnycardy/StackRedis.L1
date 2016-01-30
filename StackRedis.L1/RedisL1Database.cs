@@ -1767,7 +1767,7 @@ namespace StackRedis.L1
         {
             if (skip <= int.MaxValue && take <= int.MaxValue)
             {
-                var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+                var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, order, (int)skip, (int)take);
                 if (result != null)
                     return result.Select(e => e.Element).ToArray();
             }
@@ -1789,7 +1789,7 @@ namespace StackRedis.L1
             //Can't use skip and take if they're larger than int.maxvalue
             if (skip <= int.MaxValue && take <= int.MaxValue)
             {
-                var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+                var result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, order, (int)skip, (int)take);
                 if (result != null)
                     return result.Select(e => e.Element).ToArray();
             }
@@ -1813,7 +1813,7 @@ namespace StackRedis.L1
             IEnumerable<SortedSetEntry> result = null;
             if (skip <= int.MaxValue && take <= int.MaxValue)
             {
-                result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+                result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, order, (int)skip, (int)take);
             }
 
             if (result != null)
@@ -1824,7 +1824,7 @@ namespace StackRedis.L1
             {
                 var resultArr = _redisDb.SortedSetRangeByScoreWithScores(key, start, stop, exclude, order, skip, take, flags);
                 
-                //It's too hard to cache when skip or take are specified.
+                //It's too hard to cache when skip or take are specified. There could be other items with the same score not returned.
                 if (skip == 0 && take == -1)
                 {
                     _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
@@ -1842,23 +1842,26 @@ namespace StackRedis.L1
             IEnumerable<SortedSetEntry> result = null;
             if (skip <= int.MaxValue && take <= int.MaxValue)
             {
-                result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, (int)skip, (int)take);
+                result = _dbData.MemorySortedSets.GetByScore(key, start, stop, exclude, order, (int)skip, (int)take);
             }
 
             if (result != null)
             {
-                return result.ToArray();
+                if (order == Order.Descending)
+                    return result.Reverse().ToArray();
+                else
+                    return result.ToArray();
             }
             else
             {
                 var resultArr = await _redisDb.SortedSetRangeByScoreWithScoresAsync(key, start, stop, exclude, order, skip, take, flags);
-                
-                //It's too hard to cache when skip or take are specified.
+
+                //It's too hard to cache when skip or take are specified. There could be other items with the same score not returned.
                 if (skip == 0 && take == -1)
                 {
                     _dbData.MemorySortedSets.AddContinuous(key, resultArr, start, stop);
                 }
-
+                
                 return resultArr;
             }
         }

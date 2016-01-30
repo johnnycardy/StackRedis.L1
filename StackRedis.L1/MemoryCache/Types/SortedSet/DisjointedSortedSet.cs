@@ -281,7 +281,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         /// If there is a continuous range in memory which includes the given scores, then it is returned - even if that is an empty range.
         /// Otherwise null is returned.
         /// </summary>
-        internal IEnumerable<SortedSetEntry> RetrieveByScore(double start, double end, Exclude exclude, int skip = 0, int take = -1)
+        internal IEnumerable<SortedSetEntry> RetrieveByScore(double start, double end, Exclude exclude, Order order = Order.Ascending, int skip = 0, int take = -1)
         {
             lock(_opLockObj)
             {
@@ -290,22 +290,31 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                     if (range.ScoreBelongs(start))
                     {
                         var result = range.Subrange(start, end, exclude)
-                                        .Where(e => !_markers.Contains(e.Element))
-                                        .Skip(skip).ToArray();
+                                        .Where(e => !_markers.Contains(e.Element));
 
-                        if(take >= 0)
-                        {
-                            result = result.Take(take).ToArray();
+                        if (order == Order.Descending)
+                            result = result.Reverse();
+
+                        if(skip > 0)
+                        {                         
+                            result = result.Skip(skip);
                         }
+
+                        if (take >= 0)
+                        {
+                            result = result.Take(take);
+                        }
+
+                        var resultArray = result.ToArray();
 
                         if (range.ScoreBelongs(end) && take == -1)
                         {
-                            return result;
+                            return resultArray;
                         }
-                        else if(range.ScoreEnd <= end && result.Length == take)
+                        else if(range.ScoreEnd <= end && resultArray.Length == take)
                         { 
                             //If we were able to get the requested no. of items (take) within this range even though it didn't meet the end score.
-                            return result;
+                            return resultArray;
                         }
                         else
                         {
