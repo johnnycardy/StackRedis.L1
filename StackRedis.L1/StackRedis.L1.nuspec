@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+        <id>StackRedis.L1</id>
+        <version>0.1</version>
+        <title>StackRedis.L1</title>
+        <authors>Jonathan Cardy</authors>
+        <owners>johnnycardy</owners>
+        <licenseUrl>https://raw.githubusercontent.com/johnnycardy/StackRedis.L1/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/johnnycardy/StackRedis.L1</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>In-Memory "L1" cache for the .NET StackExchange.Redis library.</description>
+        <summary />
+        <language>en-GB</language>
+        <tags>redis cache StackExchange .NET</tags>
+        <dependencies>
+            <group targetFramework=".NETFramework4.0">
+                <dependency id="StackExchange.Redis" version="1.0.321" />
+            </group>
+        </dependencies>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System.Runtime.Caching" targetFramework=".NETFramework4.5" />
+        </frameworkAssemblies>
+    </metadata>
+    <files>
+        <file src="bin\Release\StackRedis.L1.dll" target="lib\StackRedis.L1.dll" />
+        <file src="bin\Release\StackRedis.L1.Notifications.dll" target="lib\StackRedis.L1.Notifications.dll" />
+    </files>
+</package>
