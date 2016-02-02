@@ -11,7 +11,7 @@ Network latency is your primary bottleneck when talking to Redis. Usually this i
 
 ### What about multiple clients?
 
-If you have multiple clients all talking to Redis, then each one can still use this cache layer without the risk of stale data. This is achieved by invalidating data appropriately in the background by using a combination of [Redis keyspace notifications](http://redis.io/topics/notifications) and custom pub/sub channels.
+If you have multiple clients all talking to Redis, then each one can still use this cache layer. This is achieved by invalidating data appropriately in the background by using a combination of [Redis keyspace notifications](http://redis.io/topics/notifications) and custom pub/sub channels. Due to the redis at-most-once delivery of messages, if a message is lost, then the in-memory cache will not be updated. This is a risk which needs to be managed.
 
 ### Usage
 
