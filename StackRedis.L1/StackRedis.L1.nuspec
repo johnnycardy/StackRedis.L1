@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>StackRedis.L1</id>
-        <version>0.1</version>
+        <version>0.1.1</version>
         <title>StackRedis.L1</title>
         <authors>Jonathan Cardy</authors>
         <owners>johnnycardy</owners>
