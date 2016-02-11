@@ -94,6 +94,7 @@
     <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Sorting.cs" />
     <Compile Include="SortedSet\SortedSet_AddAsync.cs" />
     <Compile Include="SortedSet\SortedSet_Add.cs" />
+    <Compile Include="SortedSet\SortedSet_Concurrency.cs" />
     <Compile Include="SortedSet\SortedSet_DecrementAsync.cs" />
     <Compile Include="SortedSet\SortedSet_IncrementAsync.cs" />
     <Compile Include="SortedSet\SortedSet_Increment.cs" />

@@ -126,10 +126,10 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
         {
             //Precondition: no two existing ranges contain overlapping scores.
 
-            List<SortedSetRange> rangesToMerge = new List<SortedSetRange>();
-
             lock(_opLockObj)
             {
+                List<SortedSetRange> rangesToMerge = new List<SortedSetRange>();
+
                 if (entries != null && entries.Any())
                 {
                     double firstNewScore = entries.First().Score;
@@ -169,7 +169,8 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                             rangesToMerge.First().Add(entry);
 
                         //Now merge all the contents of the subsequent ranges back into the first.
-                        foreach (SortedSetEntry entry in rangesToMerge.Skip(1).SelectMany(r => r.Elements))
+                        var elementsToMerge = rangesToMerge.Skip(1).SelectMany(r => r.Elements).ToArray();
+                        foreach (SortedSetEntry entry in elementsToMerge)
                             rangesToMerge.First().Add(entry);
 
                         if (!_ranges.Contains(rangesToMerge.First()))
