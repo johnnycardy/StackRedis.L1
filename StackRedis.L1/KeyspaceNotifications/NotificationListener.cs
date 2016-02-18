@@ -18,9 +18,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         private ISubscriber _subscriber;
         
         internal bool Paused { get; set; }
-
-        private string _currentMachineId = NotificationDatabase.GetProcessId();
-
+        
         internal NotificationListener(ConnectionMultiplexer connection)
         {
             _subscriber = connection.GetSubscriber();
@@ -46,7 +44,7 @@ namespace StackRedis.L1.KeyspaceNotifications
                     string machine = ((string)value).Split(':').First();
 
                     //Only listen to events caused by other redis clients
-                    if (machine != _currentMachineId)
+                    if (machine != ProcessId.GetCurrent())
                     {
                         string key = ((string)channel).Replace(_keyspaceDetail, "");
 

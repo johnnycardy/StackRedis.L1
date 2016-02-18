@@ -28,24 +28,9 @@ namespace StackRedis.L1.Notifications
             _redisDb = redisDb;
             _sub = redisDb.Multiplexer.GetSubscriber();
             _channelDb = "__keyspace_detailed@" + redisDb.Database + "__:";
-            _process = processId ?? GetProcessId();
+            _process = processId ?? ProcessId.GetCurrent();
         }
-
-        /// <summary>
-        /// Returns the current machine unique ID and the process.
-        /// </summary>
-        public static string GetProcessId()
-        {
-            string result = NetworkInterface.GetAllNetworkInterfaces()
-                            .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
-                            .Select(nic => nic.GetPhysicalAddress().ToString()).FirstOrDefault();
-
-            if (string.IsNullOrEmpty(result))
-                result = Environment.MachineName;
-
-            return result + Process.GetCurrentProcess().Id.ToString();
-        }
-
+        
         private void PublishEvent(string key, string keyMessage)
         {
             string channel = _channelDb + key;
