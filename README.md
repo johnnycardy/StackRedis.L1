@@ -38,10 +38,10 @@ Any types/functions that are not accelerated will work as normal, as the request
 The `String` type is fully accelerated, using `MemoryCache` for storage.
 
 **Hash**
-The `Hash` type is fully accelerated with a `Dictionary` used for storage.
+The `Hash` type is fully accelerated with a `Dictionary` within `MemoryCache` used for storage.
 
 **Set**
-The `Set` type is heavily accelerated using a `HashSet` used for in-memory storage.
+The `Set` type is heavily accelerated using a `HashSet` within `MemoryCache` used for in-memory storage.
 
 **SortedSet**
 `SortedSet` operations involving `score` are currently accelerated. This is done using the concept of 'disjointed sets' in memory - a collection of sorted subsets of the full sorted set. It would be possible to use the same technique to accelerate calls involving Rank, but this isn't implemented. Use `SortedSetRangeByScoreWithScores` for best caching performance. Note however that specifying 'skip' or 'take' prevents results being cached.
