@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -29,7 +30,7 @@ namespace StackRedis.L1.Test.SortedSet
 
                     lock(lockObj)
                     {
-                        _memDb.SortedSetAdd("key", "mem" + rand, rand);
+                        _memDb.SortedSetAdd("key", "mem" + rand, rand, When.Always);
                     }
 
                     //Ensure it was added

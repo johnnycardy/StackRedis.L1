@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -16,7 +17,7 @@ namespace StackRedis.L1.Test.SortedSet
             await _memDb.SortedSetAddAsync("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.SortedSetDecrementAsync("key", "mem2", 0.5);
@@ -31,7 +32,7 @@ namespace StackRedis.L1.Test.SortedSet
         [TestMethod]
         public async Task SortedSet_DecrementAsync_OldScoreRemoved()
         {
-            await _memDb.SortedSetAddAsync("key", "mem1", 10);
+            await _memDb.SortedSetAddAsync("key", "mem1", 10, When.Always);
             await _memDb.SortedSetDecrementAsync("key", "mem1", 1);
             Assert.AreEqual(9, (await _memDb.SortedSetScoreAsync("key", "mem1")).Value);
             Assert.IsFalse((await _memDb.SortedSetRangeByScoreAsync("key", 10, 10)).Any());
@@ -45,7 +46,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
                 new StackExchange.Redis.SortedSetEntry("mem3", 3),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.SortedSetDecrementAsync("key", "mem2", 1.5);
@@ -71,7 +72,7 @@ namespace StackRedis.L1.Test.SortedSet
             await _otherClientDb.SortedSetAddAsync("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             Assert.AreEqual(0, CallsByMemDb);
 
             await _memDb.SortedSetDecrementAsync("key", "mem2", 0.5);
@@ -88,7 +89,7 @@ namespace StackRedis.L1.Test.SortedSet
             await _memDb.SortedSetAddAsync("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             
             await _otherClientDb.SortedSetDecrementAsync("key", "mem2", 0.5);
 

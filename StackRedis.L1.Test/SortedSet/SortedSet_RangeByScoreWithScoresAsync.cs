@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -17,7 +18,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = await _memDb.SortedSetRangeByScoreWithScoresAsync("key", 1, 2, StackExchange.Redis.Exclude.None);

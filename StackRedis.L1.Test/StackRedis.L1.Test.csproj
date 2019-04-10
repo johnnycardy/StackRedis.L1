@@ -1,176 +1,32 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B6668C4C-6441-4858-B6BA-9890CBC95C61}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StackRedis.L1.Test</RootNamespace>
-    <AssemblyName>StackRedis.L1.Test</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFramework>net472</TargetFramework>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <AssemblyTitle>StackRedis.L1.Test</AssemblyTitle>
+    <Product>StackRedis.L1.Test</Product>
+    <Copyright>Copyright ©  2015</Copyright>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="StackExchange.Redis, Version=1.0.316.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\StackExchange.Redis.1.0.488\lib\net45\StackExchange.Redis.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-  </ItemGroup>
-  <Choose>
-    <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
-      <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-          <Private>False</Private>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <ItemGroup>
-    <Compile Include="Hash\HashDeleteAsync.cs" />
-    <Compile Include="Hash\HashDelete.cs" />
-    <Compile Include="Hash\HashExistsAsync.cs" />
-    <Compile Include="Hash\HashExists.cs" />
-    <Compile Include="Hash\HashGetAll.cs" />
-    <Compile Include="Hash\HashGetAsync.cs" />
-    <Compile Include="Hash\HashGet.cs" />
-    <Compile Include="Hash\HashIncrementAsync.cs" />
-    <Compile Include="Hash\HashIncrement.cs" />
-    <Compile Include="Hash\HashScan.cs" />
-    <Compile Include="KeyspaceEvents\Keyspace_del.cs" />
-    <Compile Include="KeyspaceEvents\Keyspace_expire.cs" />
-    <Compile Include="KeyspaceEvents\Keyspace_rename.cs" />
-    <Compile Include="Keys\KeyExistsAsync.cs" />
-    <Compile Include="Keys\KeyExists.cs" />
-    <Compile Include="Keys\KeyExpireAsync.cs" />
-    <Compile Include="Keys\KeyExpire.cs" />
-    <Compile Include="CallMonitoringRedisDatabase.cs" />
-    <Compile Include="Keys\KeyRenameAsync.cs" />
-    <Compile Include="Keys\KeyRename.cs" />
-    <Compile Include="Keys\KeyTimeToLive.cs" />
-    <Compile Include="NoRedis\NoRedisTests.cs" />
-    <Compile Include="Set\SetAdd.cs" />
-    <Compile Include="Set\SetContains.cs" />
-    <Compile Include="Set\SetMove.cs" />
-    <Compile Include="Set\SetPop.cs" />
-    <Compile Include="Set\SetRandomMember.cs" />
-    <Compile Include="Set\SetRemove.cs" />
-    <Compile Include="Set\SetScan.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Add.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Duplicates.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_JoinRanges.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RemoveByScore.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Remove.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_RetrieveScoreByValue.cs" />
-    <Compile Include="SortedSet\Disjointed\DisjointedSortedSet_Sorting.cs" />
-    <Compile Include="SortedSet\SortedSet_AddAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_Add.cs" />
-    <Compile Include="SortedSet\SortedSet_Concurrency.cs" />
-    <Compile Include="SortedSet\SortedSet_DecrementAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_IncrementAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_Increment.cs" />
-    <Compile Include="SortedSet\SortedSet_Decrement.cs" />
-    <Compile Include="SortedSet\SortedSet_RangeByScoreAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_RangeByScore.cs" />
-    <Compile Include="SortedSet\SortedSet_RangeByScoreWithScoresAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_RangeByScoreWithScores.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_Remove.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveRangeByRankAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveRangeByScoreAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveRangeByValueAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveRangeByValue.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveRangeByRank.cs" />
-    <Compile Include="SortedSet\SortedSet_RemoveRangeByScore.cs" />
-    <Compile Include="SortedSet\SortedSet_Scan.cs" />
-    <Compile Include="SortedSet\SortedSet_ScoreAsync.cs" />
-    <Compile Include="SortedSet\SortedSet_Score.cs" />
-    <Compile Include="String\StringGetAsync.cs" />
-    <Compile Include="String\StringGet.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Keys\KeyDelete.cs" />
-    <Compile Include="String\StringGetSetAsync.cs" />
-    <Compile Include="String\StringGetSet.cs" />
-    <Compile Include="String\StringGetWithExpiryAsync.cs" />
-    <Compile Include="String\StringDecrement.cs" />
-    <Compile Include="String\StringAppend.cs" />
-    <Compile Include="String\StringIncrement.cs" />
-    <Compile Include="String\StringLengthAsync.cs" />
-    <Compile Include="String\StringLength.cs" />
-    <Compile Include="String\StringSet.cs" />
-    <Compile Include="String\StringSetAsync.cs" />
-    <Compile Include="String\StringGetWithExpiry.cs" />
-    <Compile Include="String\StringSetRange.cs" />
-    <Compile Include="String\StringSetBit.cs" />
-    <Compile Include="UnitTestBase.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\StackRedis.L1.Notifications\StackRedis.L1.Notifications.csproj">
-      <Project>{6b148145-7c3e-41df-beea-57e108513efe}</Project>
-      <Name>StackRedis.L1.Notifications</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\StackRedis.L1\StackRedis.L1.csproj">
-      <Project>{b2319d19-f48a-4c99-99d8-98145c30562e}</Project>
-      <Name>StackRedis.L1</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
-      <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.CodedUITestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-          <Private>False</Private>
-        </Reference>
-        <Reference Include="Microsoft.VisualStudio.TestTools.UITest.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-          <Private>False</Private>
-        </Reference>
-        <Reference Include="Microsoft.VisualStudio.TestTools.UITest.Extension, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-          <Private>False</Private>
-        </Reference>
-        <Reference Include="Microsoft.VisualStudio.TestTools.UITesting, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-          <Private>False</Private>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.600" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StackRedis.L1.Notifications\StackRedis.L1.Notifications.csproj" />
+    <ProjectReference Include="..\StackRedis.L1\StackRedis.L1.csproj" />
+  </ItemGroup>
 </Project>

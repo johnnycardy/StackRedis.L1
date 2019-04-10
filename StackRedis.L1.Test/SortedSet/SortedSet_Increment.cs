@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -16,7 +17,7 @@ namespace StackRedis.L1.Test.SortedSet
             _memDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.SortedSetIncrement("key", "mem2", 0.5);
@@ -31,7 +32,7 @@ namespace StackRedis.L1.Test.SortedSet
         [TestMethod]
         public void SortedSet_Increment_OldScoreRemoved()
         {
-            _memDb.SortedSetAdd("key", "mem1", 10);
+            _memDb.SortedSetAdd("key", "mem1", 10, When.Always);
             _memDb.SortedSetIncrement("key", "mem1", 1);
             Assert.AreEqual(11, _memDb.SortedSetScore("key", "mem1").Value);
             Assert.IsFalse(_memDb.SortedSetRangeByScore("key", 10, 10).Any());
@@ -45,7 +46,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
                 new StackExchange.Redis.SortedSetEntry("mem3", 3),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.SortedSetIncrement("key", "mem2", 1.5);
@@ -72,7 +73,7 @@ namespace StackRedis.L1.Test.SortedSet
             _otherClientDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             Assert.AreEqual(0, CallsByMemDb);
 
             _memDb.SortedSetIncrement("key", "mem2", 0.5);
@@ -89,7 +90,7 @@ namespace StackRedis.L1.Test.SortedSet
             _memDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             
             _otherClientDb.SortedSetIncrement("key", "mem2", 0.5);
 
