@@ -22,7 +22,4 @@
     <PackageReference Include="StackExchange.Redis" Version="2.0.600" />
     <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\StackRedis.L1.Notifications\StackRedis.L1.Notifications.csproj" />
-  </ItemGroup>
 </Project>
