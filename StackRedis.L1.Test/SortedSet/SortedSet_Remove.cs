@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -16,7 +17,7 @@ namespace StackRedis.L1.Test.SortedSet
             _memDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1)
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = _memDb.SortedSetRangeByScore("key", 1, 1, StackExchange.Redis.Exclude.None);
@@ -37,7 +38,7 @@ namespace StackRedis.L1.Test.SortedSet
             _memDb.SortedSetAdd("key", new StackExchange.Redis.SortedSetEntry[]
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1)
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = _memDb.SortedSetRangeByScore("key", 1, 1, StackExchange.Redis.Exclude.None);
@@ -62,7 +63,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
                 new StackExchange.Redis.SortedSetEntry("mem3", 3)
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
             
             var result = _memDb.SortedSetRangeByScore("key", 1, 3, StackExchange.Redis.Exclude.None);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -13,7 +14,7 @@ namespace StackRedis.L1.Test.SortedSet
         [TestMethod]
         public void SortedSet_Add_Single()
         {
-            _memDb.SortedSetAdd("key", "member", 1);
+            _memDb.SortedSetAdd("key", "member", 1, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
             var result = _memDb.SortedSetRangeByScore("key", 1, 1, StackExchange.Redis.Exclude.None);
             Assert.AreEqual(1, result.Count());
@@ -27,7 +28,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 2, StackExchange.Redis.Exclude.None);
@@ -42,7 +43,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 2, StackExchange.Redis.Exclude.None);
@@ -74,7 +75,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
 
             //Warm up the mem cache
             var result = _memDb.SortedSetRangeByScoreWithScores("key", 1, 2, StackExchange.Redis.Exclude.None);
@@ -86,7 +87,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 3),
                 new StackExchange.Redis.SortedSetEntry("mem2", 4),
-            });
+            }, When.Always);
 
             await Task.Delay(50);
 

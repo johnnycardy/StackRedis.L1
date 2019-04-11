@@ -10,8 +10,8 @@ namespace StackRedis.L1.MemoryCache.Types
 {
     internal class MemorySets
     {
-        private ObjMemCache _objMemCache;
-        private object _setMoveLockObj = new object();
+        private readonly ObjMemCache _objMemCache;
+        private readonly object _setMoveLockObj = new object();
 
         internal MemorySets(ObjMemCache objMemCache)
         {

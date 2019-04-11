@@ -14,46 +14,42 @@ namespace StackRedis.L1.KeyspaceNotifications
         private static readonly string _keyspace = "__keyspace@0__:";
         private static readonly string _keyspaceDetail = "__keyspace_detailed@0__:";
 
-        private List<DatabaseInstanceData> _databases = new List<DatabaseInstanceData>();
-        private ISubscriber _subscriber;
+        private readonly List<DatabaseInstanceData> _databases = new List<DatabaseInstanceData>();
+        private readonly ISubscriber _subscriber;
         
         internal bool Paused { get; set; }
         
-        internal NotificationListener(ConnectionMultiplexer connection)
+        internal NotificationListener(IConnectionMultiplexer connection)
         {
             _subscriber = connection.GetSubscriber();
 
             //Listen for standard redis keyspace events
             _subscriber.Subscribe(_keyspace + "*", (channel, value) =>
             {
-                if (!Paused)
+                if (Paused) return;
+
+                var key = ((string)channel).Replace(_keyspace, "");
+                foreach (var dbData in _databases)
                 {
-                    string key = ((string)channel).Replace(_keyspace, "");
-                    foreach (DatabaseInstanceData dbData in _databases)
-                    {
-                        HandleKeyspaceEvent(dbData, key, value);
-                    }
+                    HandleKeyspaceEvent(dbData, key, value);
                 }
             });
 
             //Listen for advanced keyspace events
             _subscriber.Subscribe(_keyspaceDetail + "*", (channel, value) =>
             {
-                if (!Paused)
+                if (Paused) return;
+
+                var machine = ((string)value).Split(':').First();
+
+                //Only listen to events caused by other redis clients
+                if (machine == ProcessId.GetCurrent()) return;
+                var key = ((string)channel).Replace(_keyspaceDetail, "");
+
+                var eventType = ((string)value).Substring(machine.Length + 1);
+                foreach (var dbData in _databases)
                 {
-                    string machine = ((string)value).Split(':').First();
-
-                    //Only listen to events caused by other redis clients
-                    if (machine != ProcessId.GetCurrent())
-                    {
-                        string key = ((string)channel).Replace(_keyspaceDetail, "");
-
-                        string eventType = ((string)value).Substring(machine.Length + 1);
-                        foreach (DatabaseInstanceData dbData in _databases)
-                        {
-                            HandleKeyspaceDetailEvent(dbData, key, machine, eventType);
-                        }
-                    }
+                    HandleKeyspaceDetailEvent(dbData, key, machine, eventType);
                 }
             });
         }

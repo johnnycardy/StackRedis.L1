@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -17,7 +18,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             var range = await _memDb.SortedSetRangeByScoreAsync("key", 1, 2); //So that it's registered as a range
             Assert.AreEqual(2, range.Count());
             Assert.AreEqual(2, CallsByMemDb);
@@ -37,7 +38,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             var range = await _memDb.SortedSetRangeByScoreAsync("key", 1, 2); //So that it's registered as a range
             Assert.AreEqual(2, range.Count());
             Assert.AreEqual(2, CallsByMemDb);
@@ -57,7 +58,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             
             long result = await _memDb.SortedSetRemoveRangeByScoreAsync("key", 1, 3);
             Assert.AreEqual(2, CallsByMemDb);
@@ -74,7 +75,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             var range = await _memDb.SortedSetRangeByScoreAsync("key", 1, 2); //So that it's registered as a range
             Assert.AreEqual(2, range.Count());
             Assert.AreEqual(2, CallsByMemDb);
@@ -96,7 +97,7 @@ namespace StackRedis.L1.Test.SortedSet
             {
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
-            });
+            }, When.Always);
             var range = await _memDb.SortedSetRangeByScoreAsync("key", 1, 2); //So that it's registered as a range
             Assert.AreEqual(2, range.Count());
             Assert.AreEqual(2, CallsByMemDb);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.SortedSet
 {
@@ -18,7 +19,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
                 new StackExchange.Redis.SortedSetEntry("mem3", 3),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = await _memDb.SortedSetRangeByScoreAsync("key", 1, 3, StackExchange.Redis.Exclude.None);
@@ -38,7 +39,7 @@ namespace StackRedis.L1.Test.SortedSet
                 new StackExchange.Redis.SortedSetEntry("mem1", 1),
                 new StackExchange.Redis.SortedSetEntry("mem2", 2),
                 new StackExchange.Redis.SortedSetEntry("mem3", 3),
-            });
+            }, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _redisDirectDb.SortedSetAddAsync("key", new StackExchange.Redis.SortedSetEntry[]
@@ -63,7 +64,7 @@ namespace StackRedis.L1.Test.SortedSet
             var val = await _memDb.SortedSetRangeByScoreAsync("key", 1, 1);
             Assert.AreEqual("mem1", (string)val.First());
 
-            await _memDb.SortedSetAddAsync("key", "mem1", 1.5);
+            await _memDb.SortedSetAddAsync("key", "mem1", 1.5, When.Always);
             val = await _memDb.SortedSetRangeByScoreAsync("key", 1, 1.5);
             Assert.AreEqual("mem1", (string)val.Single()); //There should be no element with value 1
         } 

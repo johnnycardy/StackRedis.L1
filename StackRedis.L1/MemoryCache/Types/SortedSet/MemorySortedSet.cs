@@ -78,7 +78,7 @@ namespace StackRedis.L1.MemoryCache.Types.SortedSet
                 }
             }
         }
-
+        
         /// <summary>
         /// Gets the entries matching the specified hash code
         /// </summary>
