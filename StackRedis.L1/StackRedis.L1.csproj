@@ -3,14 +3,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>StackRedis.L1</AssemblyTitle>
     <Product>StackRedis.L1</Product>
-    <Copyright>Copyright ©  2015</Copyright>
+    <Copyright>Copyright ©  2019</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Jonathan Cardy</Authors>
+    <Authors>johnnycardy, stepaside</Authors>
     <PackageLicenseUrl>https://raw.githubusercontent.com/johnnycardy/StackRedis.L1/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/johnnycardy/StackRedis.L1</PackageProjectUrl>
     <Description>In-Memory "L1" cache for the .NET StackExchange.Redis library.</Description>
+    <Company>Jonathan Cardy</Company>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
