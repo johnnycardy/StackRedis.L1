@@ -2583,11 +2583,7 @@ namespace StackRedis.L1
         /// </summary>
         public bool StringSet(KeyValuePair<RedisKey, RedisValue>[] values, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            foreach(var kvp in values)
-            {
-                _dbData.MemoryCache.Add(kvp.Key, kvp.Value, null, when);
-            }
-
+            _dbData.MemoryCache.Add(values, null, when);
             return _redisDb == null || _redisDb.StringSet(values, when, flags);
         }
 
@@ -2605,11 +2601,7 @@ namespace StackRedis.L1
         /// </summary>
         public Task<bool> StringSetAsync(KeyValuePair<RedisKey, RedisValue>[] values, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            foreach (var kvp in values)
-            {
-                _dbData.MemoryCache.Add(kvp.Key, kvp.Value, null, when);
-            }
-
+            _dbData.MemoryCache.Add(values, null, when);
             return _redisDb == null ? Task.FromResult(true) : _redisDb.StringSetAsync(values, when, flags);
         }
 

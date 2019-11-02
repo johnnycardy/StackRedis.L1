@@ -11,7 +11,7 @@ namespace StackRedis.L1.MemoryCache.Types
 {
     internal class MemoryStrings
     {
-        private ObjMemCache _memCache;
+        private readonly ObjMemCache _memCache;
         
         internal MemoryStrings(ObjMemCache memCache)
         {
@@ -43,8 +43,8 @@ namespace StackRedis.L1.MemoryCache.Types
             //Box into object so that we can set properties on the same instance
             object oResult = result;
 
-            result.GetType().GetField("expiry", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(oResult, expiry);
-            result.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(oResult, value);
+            result.GetType().GetField("expiry", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(oResult, expiry);
+            result.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(oResult, value);
 
             //Unbox back to struct
             result = (RedisValueWithExpiry)oResult;
@@ -108,7 +108,7 @@ namespace StackRedis.L1.MemoryCache.Types
             if (nonCachedIndices.Any())
             {
                 RedisKey[] nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
-                RedisValue[] redisResults = await retrieval(nonCachedKeys);
+                RedisValue[] redisResults = await retrieval(nonCachedKeys).ConfigureAwait(false);
                 if (redisResults != null)
                 {
                     int i = 0;
@@ -118,7 +118,13 @@ namespace StackRedis.L1.MemoryCache.Types
                         result[originalIndex] = redisResult;
 
                         //Cache this key for next time
-                        _memCache.Add(keys[originalIndex], redisResult, null, When.Always);
+                        try
+                        {
+                            _memCache.Add(keys[originalIndex], redisResult, null, When.Always);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
