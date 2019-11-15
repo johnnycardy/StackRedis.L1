@@ -301,28 +301,24 @@ namespace StackRedis.L1
 
         public RedisValue[] HashGet(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryHashes.GetMulti(key, hashFields,
-                    missingKeys => Task.FromResult(_redisDb != null ? _redisDb.HashGet(key, missingKeys, flags) : new RedisValue[0]))
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return _dbData.MemoryHashes.GetMulti(key, hashFields, missingKeys => _redisDb != null ? _redisDb.HashGet(key, missingKeys, flags) : new RedisValue[0]);
         }
 
         public RedisValue HashGet(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryHashes.GetMulti(key, new[] { hashField },
-                    missingKeys => Task.FromResult(_redisDb != null ? _redisDb.HashGet(key, missingKeys, flags) : new RedisValue[0]))
-                .ConfigureAwait(false).GetAwaiter().GetResult().FirstOrDefault();
+            return _dbData.MemoryHashes.GetMulti(key, new[] { hashField }, missingKeys => _redisDb != null ? _redisDb.HashGet(key, missingKeys, flags) : new RedisValue[0]).FirstOrDefault();
         }
 
         public HashEntry[] HashGetAll(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
-            return _dbData.MemoryHashes.GetAll(key, () => Task.FromResult(_redisDb.HashGetAll(key, flags))).Result;
+            return _dbData.MemoryHashes.GetAll(key, () => _redisDb.HashGetAll(key, flags));
         }
 
         public Task<HashEntry[]> HashGetAllAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             if (_redisDb == null) throw new NotImplementedException();
-            return _dbData.MemoryHashes.GetAll(key, () => _redisDb.HashGetAllAsync(key, flags));
+            return _dbData.MemoryHashes.GetAllAsync(key, () => _redisDb.HashGetAllAsync(key, flags));
         }
 
         public Task<Lease<byte>> HashGetLeaseAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
@@ -333,12 +329,12 @@ namespace StackRedis.L1
 
         public Task<RedisValue[]> HashGetAsync(RedisKey key, RedisValue[] hashFields, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryHashes.GetMulti(key, hashFields,                 missingKeys => Task.FromResult(_redisDb != null ? _redisDb.HashGet(key, missingKeys, flags) : new RedisValue[0]));
+            return _dbData.MemoryHashes.GetMultiAsync(key, hashFields, missingKeys => Task.FromResult(_redisDb != null ? _redisDb.HashGet(key, missingKeys, flags) : new RedisValue[0]));
         }
 
         public Task<RedisValue> HashGetAsync(RedisKey key, RedisValue hashField, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryHashes.Get(key, hashField, async (hashEntryKey) =>
+            return _dbData.MemoryHashes.GetAsync(key, hashField, async (hashEntryKey) =>
             {
                 if (_redisDb != null)
                 {
@@ -2340,8 +2336,7 @@ namespace StackRedis.L1
         /// </summary>
         public RedisValue[] StringGet(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
-            return _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys => Task.FromResult(_redisDb == null ? new RedisValue[0] : _redisDb.StringGet(retrieveKeys, flags)))
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys => _redisDb == null ? new RedisValue[0] : _redisDb.StringGet(retrieveKeys, flags));
         }
 
         public Lease<byte> StringGetLease(RedisKey key, CommandFlags flags = CommandFlags.None)
@@ -2356,11 +2351,10 @@ namespace StackRedis.L1
         public RedisValue StringGet(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
             return _dbData.MemoryStrings.GetFromMemory(key, () =>
-                {
-                    System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
-                    return Task.FromResult(_redisDb?.StringGet(key, flags) ?? new RedisValue());
-                })
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            {
+                System.Diagnostics.Debug.WriteLine("Getting key from redis: " + (string)key);
+                return _redisDb?.StringGet(key, flags) ?? new RedisValue();
+            });
         }
 
         /// <summary>
@@ -2368,7 +2362,7 @@ namespace StackRedis.L1
         /// </summary>
         public async Task<RedisValue[]> StringGetAsync(RedisKey[] keys, CommandFlags flags = CommandFlags.None)
         {
-            return await _dbData.MemoryStrings.GetFromMemoryMulti(keys, retrieveKeys =>
+            return await _dbData.MemoryStrings.GetFromMemoryMultiAsync(keys, retrieveKeys =>
                     _redisDb == null ? Task.FromResult(new RedisValue[0]) : _redisDb.StringGetAsync(retrieveKeys, flags))
                 .ConfigureAwait(false);
         }
@@ -2384,7 +2378,7 @@ namespace StackRedis.L1
         /// </summary>
         public async Task<RedisValue> StringGetAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            return await _dbData.MemoryStrings.GetFromMemory(key, () => _redisDb == null ? Task.FromResult(new RedisValue()) : _redisDb.StringGetAsync(key, flags)).ConfigureAwait(false);
+            return await _dbData.MemoryStrings.GetFromMemoryAsync(key, () => _redisDb == null ? Task.FromResult(new RedisValue()) : _redisDb.StringGetAsync(key, flags)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -2432,17 +2426,17 @@ namespace StackRedis.L1
 
             var result = _dbData.MemoryStrings.GetFromMemory(key, () =>
             {
-                if (_redisDb == null) return Task.FromResult(new RedisValue());
-                
+                if (_redisDb == null) return new RedisValue();
+
                 hasSetInRedis = true;
-                return Task.FromResult(_redisDb.StringGetSet(key, value, flags));
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+                return _redisDb.StringGetSet(key, value, flags);
+            });
 
             //Set it in memory
             _dbData.MemoryCache.Add(key, value, null, When.Always);
 
             //Set it in redis if necessary
-            if(!hasSetInRedis)
+            if (!hasSetInRedis)
             {
                 _redisDb?.StringSet(key, value, null, When.Always, flags);
             }
@@ -2457,7 +2451,7 @@ namespace StackRedis.L1
         {
             var hasSetInRedis = false;
 
-            var result = await _dbData.MemoryStrings.GetFromMemory(key, () =>
+            var result = await _dbData.MemoryStrings.GetFromMemoryAsync(key, () =>
             {
                 if (_redisDb == null) return Task.FromResult(new RedisValue());
 

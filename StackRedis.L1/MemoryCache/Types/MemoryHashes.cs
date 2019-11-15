@@ -19,45 +19,65 @@ namespace StackRedis.L1.MemoryCache.Types
         /// Returns all items of the hash, storing them in memory.
         /// TODO: cache a flag that indicates that all have been retrieved. That is difficult because there are lots of places to remove that flag (hashset, hashdelete, etc...)
         /// </summary>
-        internal async Task<HashEntry[]> GetAll(string hashKey, Func<Task<HashEntry[]>> retrieval)
+        internal HashEntry[] GetAll(string hashKey, Func<HashEntry[]> retrieval)
         {
             //At the moment, we always go to redis, but store the contents in the cache for later retrieval by HashGet.
-            var hashEntries = await retrieval();
+            var hashEntries = retrieval();
 
             //Empty existing keys
             var hash = GetHash(hashKey);
-            if (hash != null)
-                hash.Clear();
+            hash?.Clear();
 
             //Save all the new values
-            Set(hashKey, hashEntries, When.Always);
+            Set(hashKey, hashEntries);
 
             return hashEntries;
         }
 
-        internal async Task<RedisValue> Get(string hashKey, RedisValue key, Func<RedisValue, Task<RedisValue>> retrieval)
+        internal async Task<HashEntry[]> GetAllAsync(string hashKey, Func<Task<HashEntry[]>> retrieval)
         {
-            return (await GetMulti(hashKey, new RedisValue[] { key }, async (keys) =>
+            //At the moment, we always go to redis, but store the contents in the cache for later retrieval by HashGet.
+            var hashEntries = await retrieval().ConfigureAwait(false);
+
+            //Empty existing keys
+            var hash = GetHash(hashKey);
+            hash?.Clear();
+
+            //Save all the new values
+            Set(hashKey, hashEntries);
+
+            return hashEntries;
+        }
+
+        internal RedisValue Get(string hashKey, RedisValue key, Func<RedisValue, RedisValue> retrieval)
+        {
+            return GetMulti(hashKey, new[] { key }, keys =>
             {
-                RedisValue result = await retrieval(key);
+                var result = retrieval(key);
+                return new[] { result };
+            }).Single();
+        }
+
+        internal async Task<RedisValue> GetAsync(string hashKey, RedisValue key, Func<RedisValue, Task<RedisValue>> retrieval)
+        {
+            return (await GetMultiAsync(hashKey, new[] { key }, async keys =>
+            {
+                var result = await retrieval(key).ConfigureAwait(false);
                 return new[] { result };
             })).Single();
         }
 
-        internal async Task<RedisValue[]> GetMulti(string hashKey, RedisValue[] keys, Func<RedisValue[], Task<RedisValue[]>> retrieval)
+        internal RedisValue[] GetMulti(string hashKey, RedisValue[] keys, Func<RedisValue[], RedisValue[]> retrieval)
         {
-            if (!keys.Any())
-                return new RedisValue[0];
+            if (!keys.Any()) return new RedisValue[0];
 
             //Get the in-memory hash
-            var hash = GetHash(hashKey);
-            if (hash == null)
-                hash = SetHash(hashKey);
+            var hash = GetHash(hashKey) ?? SetHash(hashKey);
 
-            RedisValue[] result = new RedisValue[keys.Length];
-            List<int> nonCachedIndices = new List<int>();
+            var result = new RedisValue[keys.Length];
+            var nonCachedIndices = new List<int>();
 
-            for (int i = 0; i < keys.Length; i++)
+            for (var i = 0; i < keys.Length; i++)
             {
                 if (hash.ContainsKey(keys[i]))
                 {
@@ -70,26 +90,66 @@ namespace StackRedis.L1.MemoryCache.Types
             }
 
             //Get all non cached indices from redis and place them in their correct positions for the result array
-            if (nonCachedIndices.Any())
-            {
-                RedisValue[] nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
-                RedisValue[] redisResults = await retrieval(nonCachedKeys);
-                if (redisResults != null)
-                {
-                    int i = 0;
-                    foreach (var redisResult in redisResults)
-                    {
-                        int originalIndex = nonCachedIndices[i++];
-                        result[originalIndex] = redisResult;
+            if (!nonCachedIndices.Any()) return result;
 
-                        //Cache this key for next time
-                        hash.Add(keys[originalIndex], redisResult);
-                    }
-                }
+            var nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
+            var redisResults = retrieval(nonCachedKeys);
+            if (redisResults == null) return result;
+
+            var j = 0;
+            foreach (var redisResult in redisResults)
+            {
+                var originalIndex = nonCachedIndices[j++];
+                result[originalIndex] = redisResult;
+
+                //Cache this key for next time
+                hash.Add(keys[originalIndex], redisResult);
             }
 
             return result;
-        }  
+        }
+
+        internal async Task<RedisValue[]> GetMultiAsync(string hashKey, RedisValue[] keys, Func<RedisValue[], Task<RedisValue[]>> retrieval)
+        {
+            if (!keys.Any()) return new RedisValue[0];
+
+            //Get the in-memory hash
+            var hash = GetHash(hashKey) ?? SetHash(hashKey);
+
+            var result = new RedisValue[keys.Length];
+            var nonCachedIndices = new List<int>();
+
+            for (var i = 0; i < keys.Length; i++)
+            {
+                if (hash.ContainsKey(keys[i]))
+                {
+                    result[i] = hash[keys[i]];
+                }
+                else
+                {
+                    nonCachedIndices.Add(i);
+                }
+            }
+
+            //Get all non cached indices from redis and place them in their correct positions for the result array
+            if (!nonCachedIndices.Any()) return result;
+
+            var nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
+            var redisResults = await retrieval(nonCachedKeys).ConfigureAwait(false);
+            if (redisResults == null) return result;
+
+            var j = 0;
+            foreach (var redisResult in redisResults)
+            {
+                var originalIndex = nonCachedIndices[j++];
+                result[originalIndex] = redisResult;
+
+                //Cache this key for next time
+                hash.Add(keys[originalIndex], redisResult);
+            }
+
+            return result;
+        }
 
         internal bool Contains(string hashKey, string key)
         {
