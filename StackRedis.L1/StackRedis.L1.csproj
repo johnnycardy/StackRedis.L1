@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <AssemblyTitle>StackRedis.L1</AssemblyTitle>
     <Product>StackRedis.L1</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
-    <Version>0.2.1</Version>
+    <Version>0.2.6</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>johnnycardy, stepaside</Authors>
     <PackageLicenseUrl>https://raw.githubusercontent.com/johnnycardy/StackRedis.L1/master/LICENSE</PackageLicenseUrl>

@@ -30,11 +30,18 @@ namespace StackRedis.L1.Notifications
         
         private void PublishEvent(string key, string keyMessage)
         {
-            string channel = _channelDb + key;
-            string message = $"{_process}:{keyMessage}";
+            var channel = _channelDb + key;
+            var message = $"{_process}:{keyMessage}";
 
             //Publish the event
-            _sub.Publish(channel, message);
+            try
+            {
+                _sub.Publish(channel, message, CommandFlags.FireAndForget);
+            }
+            catch
+            {
+                //ignore timeout
+            }
         }
 
         public IConnectionMultiplexer Multiplexer => _redisDb.Multiplexer;

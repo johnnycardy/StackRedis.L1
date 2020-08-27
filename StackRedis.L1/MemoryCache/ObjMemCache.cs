@@ -17,7 +17,7 @@ namespace StackRedis.L1.MemoryCache
         
         //When you add an item to MemoryCache with a specific TTL, you can't retrieve it again.
         //So, we store them separately.
-        private Dictionary<string, DateTimeOffset?> _ttls = new Dictionary<string, DateTimeOffset?>();
+        private readonly ConcurrentDictionary<string, DateTimeOffset?> _ttls = new ConcurrentDictionary<string, DateTimeOffset?>();
         
         internal ObjMemCache()
         {
@@ -26,49 +26,72 @@ namespace StackRedis.L1.MemoryCache
         
         public bool ContainsKey(string key)
         {
-            return _cache.Contains(key);
+            lock (_lockObj)
+            {
+                return _cache.Contains(key);
+            }
         }
 
         public void Update(string key, object o)
         {
-            if(ContainsKey(key))
+            lock (_lockObj)
             {
-                var expiry = GetExpiry(key);
-                TimeSpan? expiryTimespan = expiry.HasValue ? expiry.Value : null;
-                Add(key, o, expiryTimespan, When.Always);
+                if (!_cache.Contains(key)) return;
+                var expiry = GetExpiryInternal(key);
+                var expiryTimespan = expiry.HasValue ? expiry.Value : null;
+                AddSingle(key, o, expiryTimespan, When.Always);
             }
         }
-        
+
+        private void AddSingle(string key, object o, TimeSpan? expiry, When when)
+        {
+            if (_cache == null) return;
+
+            if (when == When.Exists && !_cache.Contains(key))
+            {
+                return;
+            }
+
+            if (when == When.NotExists && _cache.Contains(key))
+            {
+                return;
+            }
+
+            _cache.Remove(key);
+
+            var policy = new CacheItemPolicy();
+
+            if (expiry.HasValue && expiry.Value != default(TimeSpan))
+            {
+                //Store the ttl separately
+                policy.AbsoluteExpiration = DateTime.UtcNow.Add(expiry.Value);
+                _ttls[key] = policy.AbsoluteExpiration;
+            }
+            else
+            {
+                _ttls[key] = null;
+            }
+
+            System.Diagnostics.Debug.WriteLine("Adding key to mem cache: " + key);
+            _cache.Set(key, o, policy);
+        }
+
         public void Add(string key, object o, TimeSpan? expiry, When when)
         {
-            lock(_lockObj)
+            lock (_lockObj)
             {
-                if (when == When.Exists && !_cache.Contains(key))
-                {
-                    return;
-                }
+                AddSingle(key, o, expiry, when);
+            }
+        }
 
-                if (when == When.NotExists && _cache.Contains(key))
+        public void Add(IEnumerable<KeyValuePair<RedisKey , RedisValue>> items, TimeSpan? expiry, When when)
+        {
+            lock (_lockObj)
+            {
+                foreach (var item in items)
                 {
-                    return;
+                    AddSingle(item.Key, item.Value, expiry, when);
                 }
-
-                _cache.Remove(key);
-                
-                CacheItemPolicy policy = new CacheItemPolicy();
-
-                if (expiry.HasValue && expiry.Value != default(TimeSpan))
-                {
-                    //Store the ttl separately
-                    _ttls[key] = policy.AbsoluteExpiration = DateTime.UtcNow.Add(expiry.Value);
-                }
-                else
-                {
-                    _ttls[key] = null;
-                }
-
-                System.Diagnostics.Debug.WriteLine("Adding key to mem cache: " + key);
-                _cache.Add(key, o, policy);
             }
         }
 
@@ -79,7 +102,7 @@ namespace StackRedis.L1.MemoryCache
                 if (_cache.Contains(key))
                 {
                     System.Diagnostics.Debug.WriteLine("Mem cache hit: " + key);
-                    T result = (T)_cache[key];
+                    var result = (T)_cache[key];
                     return new ValOrRefNullable<T>(result);
                 }
                 else
@@ -97,13 +120,16 @@ namespace StackRedis.L1.MemoryCache
         /// </summary>
         internal void ClearTimeToLive(RedisKey key)
         {
-            if(_ttls.ContainsKey(key))
+            lock (_lockObj)
             {
-                _ttls.Remove(key);
+                if (_ttls.ContainsKey(key))
+                {
+                    _ttls.TryRemove(key, out var t);
+                }
             }
         }
 
-        public ValOrRefNullable<TimeSpan?> GetExpiry(string key)
+        private ValOrRefNullable<TimeSpan?> GetExpiryInternal(string key)
         {
             if(_ttls.ContainsKey(key))
             {
@@ -123,6 +149,14 @@ namespace StackRedis.L1.MemoryCache
             {
                 //There is no TTL stored - we would have to go to redis to get it.
                 return new ValOrRefNullable<TimeSpan?>();
+            }
+        }
+
+        public ValOrRefNullable<TimeSpan?> GetExpiry(string key)
+        {
+            lock (_lockObj)
+            {
+                return GetExpiryInternal(key);
             }
         }
 
@@ -182,7 +216,7 @@ namespace StackRedis.L1.MemoryCache
                         }
 
                         //Remove the existing TTL
-                        _ttls.Remove(keyFrom);
+                        _ttls.TryRemove(keyFrom, out var t);
                     }
                     
                     Add(keyTo, value, ttl, When.Always);
@@ -208,7 +242,7 @@ namespace StackRedis.L1.MemoryCache
                         
                         if (_ttls.ContainsKey(key))
                         {
-                            _ttls.Remove(key);
+                            _ttls.TryRemove(key, out var t);
                         }
 
                         result++;

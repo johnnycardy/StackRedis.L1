@@ -11,32 +11,36 @@ namespace StackRedis.L1.KeyspaceNotifications
 {
     internal class NotificationListener : IDisposable
     {
-        private static readonly string _keyspace = "__keyspace@0__:";
-        private static readonly string _keyspaceDetail = "__keyspace_detailed@0__:";
+        private static readonly string _keyspace = "__keyspace@{0}__:";
+        private static readonly string _keyspaceDetail = "__keyspace_detailed@{0}__:";
 
-        private readonly List<DatabaseInstanceData> _databases = new List<DatabaseInstanceData>();
+        private DatabaseInstanceData _database;
         private readonly ISubscriber _subscriber;
+        private readonly int _databaseId;
         
         internal bool Paused { get; set; }
         
-        internal NotificationListener(IConnectionMultiplexer connection)
+        internal NotificationListener(IDatabase redisDb)
         {
+            var connection = redisDb.Multiplexer;
             _subscriber = connection.GetSubscriber();
 
+            _databaseId = redisDb.Database;
+
             //Listen for standard redis keyspace events
-            _subscriber.Subscribe(_keyspace + "*", (channel, value) =>
+            _subscriber.Subscribe(string.Format(_keyspace, _databaseId) + "*", (channel, value) =>
             {
                 if (Paused) return;
 
-                var key = ((string)channel).Replace(_keyspace, "");
-                foreach (var dbData in _databases)
+                var key = ((string)channel).Replace(string.Format(_keyspace, _databaseId), "");
+                if (_database != null)
                 {
-                    HandleKeyspaceEvent(dbData, key, value);
+                    HandleKeyspaceEvent(_database, key, value);
                 }
             });
 
             //Listen for advanced keyspace events
-            _subscriber.Subscribe(_keyspaceDetail + "*", (channel, value) =>
+            _subscriber.Subscribe(string.Format(_keyspaceDetail, _databaseId) + "*", (channel, value) =>
             {
                 if (Paused) return;
 
@@ -44,27 +48,29 @@ namespace StackRedis.L1.KeyspaceNotifications
 
                 //Only listen to events caused by other redis clients
                 if (machine == ProcessId.GetCurrent()) return;
-                var key = ((string)channel).Replace(_keyspaceDetail, "");
+
+                var key = ((string)channel).Replace(string.Format(_keyspaceDetail, _databaseId), "");
 
                 var eventType = ((string)value).Substring(machine.Length + 1);
-                foreach (var dbData in _databases)
+                if (_database != null)
                 {
-                    HandleKeyspaceDetailEvent(dbData, key, machine, eventType);
+                    HandleKeyspaceDetailEvent(_database, key, machine, eventType);
                 }
             });
         }
         
         public void Dispose()
         {
-            _subscriber.Unsubscribe(_keyspace + "*");
+            _subscriber.Unsubscribe(string.Format(_keyspace, _databaseId) + "*");
+            _subscriber.Unsubscribe(string.Format(_keyspaceDetail, _databaseId) + "*");
         }
 
         internal void HandleKeyspaceEvents(DatabaseInstanceData dbData)
         {
-            _databases.Add(dbData);
+            _database = dbData;
         }
 
-        private void HandleKeyspaceDetailEvent(DatabaseInstanceData dbData, string key, string machine, string eventType)
+        private static void HandleKeyspaceDetailEvent(DatabaseInstanceData dbData, string key, string machine, string eventType)
         {
             System.Diagnostics.Debug.WriteLine("Keyspace detail event. Key=" + key + ", Machine=" + machine + ", Event=" + eventType);
 
@@ -162,7 +168,7 @@ namespace StackRedis.L1.KeyspaceNotifications
         /// <summary>
         /// Reads the key/value and updates the database with the relevant value
         /// </summary>
-        private void HandleKeyspaceEvent(DatabaseInstanceData dbData, string key, string value)
+        private static void HandleKeyspaceEvent(DatabaseInstanceData dbData, string key, string value)
         {
             System.Diagnostics.Debug.WriteLine("Keyspace event. Key=" + key + ", Value=" + value);
             if(value == "expired")

@@ -11,7 +11,7 @@ namespace StackRedis.L1.MemoryCache.Types
 {
     internal class MemoryStrings
     {
-        private ObjMemCache _memCache;
+        private readonly ObjMemCache _memCache;
         
         internal MemoryStrings(ObjMemCache memCache)
         {
@@ -43,8 +43,8 @@ namespace StackRedis.L1.MemoryCache.Types
             //Box into object so that we can set properties on the same instance
             object oResult = result;
 
-            result.GetType().GetField("expiry", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(oResult, expiry);
-            result.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(oResult, value);
+            result.GetType().GetField("expiry", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(oResult, expiry);
+            result.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(oResult, value);
 
             //Unbox back to struct
             result = (RedisValueWithExpiry)oResult;
@@ -73,25 +73,33 @@ namespace StackRedis.L1.MemoryCache.Types
 
             return result;
         }
-        
-        internal async Task<RedisValue> GetFromMemory(string key, Func<Task<RedisValue>> retrieval)
+
+        internal RedisValue GetFromMemory(string key, Func<RedisValue> retrieval)
         {
-            return (await GetFromMemoryMulti(new RedisKey[] { key }, async (keys) =>
+            return GetFromMemoryMulti(new RedisKey[] { key }, keys =>
             {
-                RedisValue result = await retrieval();
-                return new [] { result };
-            })).Single();
+                var result = retrieval();
+                return new[] { result };
+            }).Single();
         }
-        
-        internal async Task<RedisValue[]> GetFromMemoryMulti(RedisKey[] keys, Func<RedisKey[], Task<RedisValue[]>> retrieval)
+
+        internal async Task<RedisValue> GetFromMemoryAsync(string key, Func<Task<RedisValue>> retrieval)
         {
-            if (!keys.Any())
-                return new RedisValue[0];
+            return (await GetFromMemoryMultiAsync(new RedisKey[] { key }, async keys =>
+            {
+                var result = await retrieval().ConfigureAwait(false);
+                return new[] { result };
+            }).ConfigureAwait(false)).Single();
+        }
 
-            RedisValue[] result = new RedisValue[keys.Length];
-            List<int> nonCachedIndices = new List<int>();
+        internal RedisValue[] GetFromMemoryMulti(RedisKey[] keys, Func<RedisKey[], RedisValue[]> retrieval)
+        {
+            if (!keys.Any()) return new RedisValue[0];
 
-            for (int i = 0; i < keys.Length; i++)
+            var result = new RedisValue[keys.Length];
+            var nonCachedIndices = new List<int>();
+
+            for (var i = 0; i < keys.Length; i++)
             {
                 var cachedItem = _memCache.Get<RedisValue>(keys[i]);
                 if (cachedItem.HasValue)
@@ -105,27 +113,79 @@ namespace StackRedis.L1.MemoryCache.Types
             }
 
             //Get all non cached indices from redis and place them in their correct positions for the result array
-            if (nonCachedIndices.Any())
-            {
-                RedisKey[] nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
-                RedisValue[] redisResults = await retrieval(nonCachedKeys);
-                if (redisResults != null)
-                {
-                    int i = 0;
-                    foreach (var redisResult in redisResults)
-                    {
-                        int originalIndex = nonCachedIndices[i++];
-                        result[originalIndex] = redisResult;
+            if (!nonCachedIndices.Any()) return result;
 
-                        //Cache this key for next time
-                        _memCache.Add(keys[originalIndex], redisResult, null, When.Always);
-                    }
+
+            var nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
+            var redisResults = retrieval(nonCachedKeys);
+            if (redisResults == null) return result;
+
+            var j = 0;
+            foreach (var redisResult in redisResults)
+            {
+                var originalIndex = nonCachedIndices[j++];
+                result[originalIndex] = redisResult;
+
+                //Cache this key for next time
+                try
+                {
+                    _memCache.Add(keys[originalIndex], redisResult, null, When.Always);
+                }
+                catch
+                {
                 }
             }
 
             return result;
         }
-        
+
+        internal async Task<RedisValue[]> GetFromMemoryMultiAsync(RedisKey[] keys, Func<RedisKey[], Task<RedisValue[]>> retrieval)
+        {
+            if (!keys.Any()) return new RedisValue[0];
+
+            var result = new RedisValue[keys.Length];
+            var nonCachedIndices = new List<int>();
+
+            for (var i = 0; i < keys.Length; i++)
+            {
+                var cachedItem = _memCache.Get<RedisValue>(keys[i]);
+                if (cachedItem.HasValue)
+                {
+                    result[i] = cachedItem.Value;
+                }
+                else
+                {
+                    nonCachedIndices.Add(i);
+                }
+            }
+
+            //Get all non cached indices from redis and place them in their correct positions for the result array
+            if (!nonCachedIndices.Any()) return result;
+
+
+            var nonCachedKeys = keys.Where((key, index) => nonCachedIndices.Contains(index)).ToArray();
+            var redisResults = await retrieval(nonCachedKeys).ConfigureAwait(false);
+            if (redisResults == null) return result;
+
+            var j = 0;
+            foreach (var redisResult in redisResults)
+            {
+                var originalIndex = nonCachedIndices[j++];
+                result[originalIndex] = redisResult;
+
+                //Cache this key for next time
+                try
+                {
+                    _memCache.Add(keys[originalIndex], redisResult, null, When.Always);
+                }
+                catch
+                {
+                }
+            }
+
+            return result;
+        }
+
         internal long AppendToString(string key, string value)
         {
             if (!string.IsNullOrEmpty(value))
