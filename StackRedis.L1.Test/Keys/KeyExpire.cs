@@ -13,7 +13,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task KeyExpire_DateTime()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             
             //value1 should be mem cached
             Assert.IsTrue(_memDb.StringGet("key1").HasValue);
@@ -28,14 +28,14 @@ namespace StackRedis.L1.Test
             Assert.IsFalse(_memDb.StringGet("key1").HasValue);
 
             //Add it again and make sure it's back
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             Assert.IsTrue(_memDb.StringGet("key1").HasValue);
         }
 
         [TestMethod]
         public void KeyExpire_DateTime_Negative()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
 
             //value1 should be mem cached
             Assert.IsTrue(_memDb.StringGet("key1").HasValue);
@@ -49,7 +49,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task KeyExpire_Timespan()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             
             //value1 should be mem cached
             Assert.IsTrue(_memDb.StringGet("key1").HasValue);
@@ -64,14 +64,14 @@ namespace StackRedis.L1.Test
             Assert.IsFalse(_memDb.StringGet("key1").HasValue);
 
             //Add it again and make sure it's back
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             Assert.IsTrue(_memDb.StringGet("key1").HasValue);
         }
 
         [TestMethod]
         public void KeyExpire_Timespan_Negative()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
 
             //value1 should be mem cached
             Assert.IsTrue(_memDb.StringGet("key1").HasValue);
@@ -86,7 +86,7 @@ namespace StackRedis.L1.Test
         public async Task KeyExpire_ClearTimeout_Timespan()
         {
             //Set a key with a timeout
-            _memDb.StringSet("key1", "value1", TimeSpan.FromMilliseconds(50));
+            _memDb.StringSet("key1", "value1", TimeSpan.FromMilliseconds(50), When.Always);
 
             //Clear the timeout before it finishes
             _memDb.KeyExpire("key1", (TimeSpan?)null);
@@ -102,7 +102,7 @@ namespace StackRedis.L1.Test
         public async Task KeyExpire_ClearTimeout_DateTime()
         {
             //Set a key with a timeout
-            _memDb.StringSet("key1", "value1", TimeSpan.FromMilliseconds(50));
+            _memDb.StringSet("key1", "value1", TimeSpan.FromMilliseconds(50), When.Always);
 
             //Clear the timeout before it finishes
             _memDb.KeyExpire("key1", (DateTime?)null);

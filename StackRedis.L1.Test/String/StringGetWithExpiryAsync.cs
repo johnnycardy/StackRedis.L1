@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.String
 {
@@ -48,7 +49,7 @@ namespace StackRedis.L1.Test.String
         [TestMethod]
         public async Task StringGetWithExpiryAsync_StringAndExpirySetInMem()
         {
-            await _memDb.StringSetAsync("key1", "val", TimeSpan.FromDays(1));
+            await _memDb.StringSetAsync("key1", "val", TimeSpan.FromDays(1), When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = await _memDb.StringGetWithExpiryAsync("key1");
@@ -61,7 +62,7 @@ namespace StackRedis.L1.Test.String
         [TestMethod]
         public async Task StringGetWithExpiryAsync_StringAndNoExpirySetInMem()
         {
-            await _memDb.StringSetAsync("key1", "val");
+            await _memDb.StringSetAsync("key1", "val", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = await _memDb.StringGetWithExpiryAsync("key1");

@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringDecrement_Double_Simple()
         {
-            _memDb.StringSet("key", "2.5");
+            _memDb.StringSet("key", "2.5", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringDecrement("key", 1.5);
@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringDecrement_Double_InRedis_Notification()
         {
-            _memDb.StringSet("key", "2.5");
+            _memDb.StringSet("key", "2.5", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringDecrement("key", 1.5);
@@ -46,7 +46,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringDecrementAsync_Double_Simple()
         {
-            await _memDb.StringSetAsync("key", "2.5");
+            await _memDb.StringSetAsync("key", "2.5", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringDecrementAsync("key", 1.5);
@@ -61,7 +61,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringDecrement_Long_Simple()
         {
-            _memDb.StringSet("key", "3");
+            _memDb.StringSet("key", "3", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringDecrement("key", 2);
@@ -77,7 +77,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringDecrement_Long_InRedis_Notification()
         {
-            _memDb.StringSet("key", "3");
+            _memDb.StringSet("key", "3", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringDecrement("key", 2);
@@ -95,7 +95,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringDecrementAsync_Long_Simple()
         {
-            await _memDb.StringSetAsync("key", "3");
+            await _memDb.StringSetAsync("key", "3", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringDecrementAsync("key", 2);

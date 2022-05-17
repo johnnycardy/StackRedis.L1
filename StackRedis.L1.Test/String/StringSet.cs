@@ -11,7 +11,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringSet_ThenGet()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
 
             Assert.AreEqual(1, CallsByMemDb);
 

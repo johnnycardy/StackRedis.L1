@@ -31,7 +31,7 @@ namespace StackRedis.L1.Test
             await Task.Delay(1200);
 
             //Now change it in redis
-            _otherClientDb.StringSet("key1", "value2");
+            _otherClientDb.StringSet("key1", "value2", null, When.Always);
 
             //Wait for it to propagate and re-retrieve
             await Task.Delay(50);
@@ -77,7 +77,7 @@ namespace StackRedis.L1.Test
         public async Task StringGet_WithExpiry()
         {
             //Set in redis with an expiry
-            _otherClientDb.StringSet("key_exp", "value1", TimeSpan.FromMilliseconds(30));
+            _otherClientDb.StringSet("key_exp", "value1", TimeSpan.FromMilliseconds(30), When.Always);
 
             //Pull into memory
             Assert.AreEqual("value1", (string)_memDb.StringGet("key_exp"));

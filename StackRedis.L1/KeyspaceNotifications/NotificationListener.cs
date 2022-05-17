@@ -132,6 +132,11 @@ namespace StackRedis.L1.KeyspaceNotifications
                 //A key was removed
                 dbData.MemoryCache.Remove(new[] { key });
             }
+            else if(eventName == "getdel")
+            {
+                //A key was removed
+                dbData.MemoryCache.Remove(new[] { key });
+            }
             else if (eventName == "expire")
             {
                 //The TTL has changed - clear it in memory

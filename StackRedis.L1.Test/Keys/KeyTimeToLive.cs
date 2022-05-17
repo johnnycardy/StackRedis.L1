@@ -13,7 +13,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void KeyTimeToLive_Simple()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
 
             //Give it a ttl in redis
             _redisDirectDb.KeyExpire("key1", TimeSpan.FromMinutes(10));
@@ -32,7 +32,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task KeyTimeToLive_ByOtherClient()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
 
             //Give it a ttl in redis
             _redisDirectDb.KeyExpire("key1", TimeSpan.FromMinutes(10));
