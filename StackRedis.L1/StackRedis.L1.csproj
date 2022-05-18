@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net472</TargetFrameworks>
     <AssemblyTitle>StackRedis.L1</AssemblyTitle>
     <Product>StackRedis.L1</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
-    <Version>0.2.6</Version>
+    <Version>0.3.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>johnnycardy, stepaside</Authors>
     <PackageLicenseUrl>https://raw.githubusercontent.com/johnnycardy/StackRedis.L1/master/LICENSE</PackageLicenseUrl>
@@ -20,7 +20,7 @@
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.0.600" />
-    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.5.61" />
+    <PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
   </ItemGroup>
 </Project>

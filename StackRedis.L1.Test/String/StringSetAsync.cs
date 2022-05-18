@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringSetAsync_ThenGet()
         {
-            await _memDb.StringSetAsync("key1", "value1");
+            await _memDb.StringSetAsync("key1", "value1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
             
             //value1 should be mem cached

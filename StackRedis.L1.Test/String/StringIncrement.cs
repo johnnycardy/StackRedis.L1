@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringIncrement_Double_Simple()
         {
-            _memDb.StringSet("key", "1");
+            _memDb.StringSet("key", "1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringIncrement("key", 1.5);
@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringIncrement_Double_InRedis_Notification()
         {
-            _memDb.StringSet("key", "1");
+            _memDb.StringSet("key", "1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringIncrement("key", 1.5);
@@ -45,7 +45,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringIncrementAsync_Double_Simple()
         {
-            await _memDb.StringSetAsync("key", "1");
+            await _memDb.StringSetAsync("key", "1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringIncrementAsync("key", 1.5);
@@ -60,7 +60,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringIncrement_Long_Simple()
         {
-            _memDb.StringSet("key", "1");
+            _memDb.StringSet("key", "1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringIncrement("key", 2);
@@ -76,7 +76,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringIncrement_Long_InRedis_Notification()
         {
-            _memDb.StringSet("key", "1");
+            _memDb.StringSet("key", "1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringIncrement("key", 2);
@@ -94,7 +94,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringIncrementAsync_Long_Simple()
         {
-            await _memDb.StringSetAsync("key", "1");
+            await _memDb.StringSetAsync("key", "1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringIncrementAsync("key", 2);

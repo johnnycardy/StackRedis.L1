@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
             Assert.IsFalse(_memDb.KeyExists("key1"));
             Assert.AreEqual(1, CallsByMemDb);
 
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             Assert.AreEqual(2, CallsByMemDb);
 
             //We should be able to tell that it exists without going to redis
@@ -39,7 +39,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void KeyExists_False_KeyDelete()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             Assert.IsTrue(_memDb.KeyExists("key1"));

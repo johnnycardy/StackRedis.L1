@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void KeyDelete_AfterSet()
         {
-            _memDb.StringSet("key1", "value1");
+            _memDb.StringSet("key1", "value1", null, When.Always);
             
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)_memDb.StringGet("key1"));
@@ -34,7 +34,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task KeyDeleteAsync_AfterSet()
         {
-            await _memDb.StringSetAsync("key1", "value1");
+            await _memDb.StringSetAsync("key1", "value1", null, When.Always);
 
             //value1 should be mem cached
             Assert.AreEqual("value1", (string)(await _memDb.StringGetAsync("key1")));

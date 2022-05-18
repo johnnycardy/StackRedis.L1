@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringSetRange_Simple()
         {
-            _memDb.StringSet("key", "value");
+            _memDb.StringSet("key", "value", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringSetRange("key", 2, "x");
@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringSetRange_InRedis_Notification()
         {
-            _memDb.StringSet("key", "value");
+            _memDb.StringSet("key", "value", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringSetRange("key", 2, "x");
@@ -46,7 +46,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringSetRangeAsync_Simple()
         {
-            await _memDb.StringSetAsync("key", "value");
+            await _memDb.StringSetAsync("key", "value", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringSetRangeAsync("key", 2, "x");

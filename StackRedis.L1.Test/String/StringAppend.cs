@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringAppend_Simple()
         {
-            _memDb.StringSet("key", "a");
+            _memDb.StringSet("key", "a", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringAppend("key", "b");
@@ -27,7 +27,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringAppend_InRedis_Notification()
         {
-            _memDb.StringSet("key", "a");
+            _memDb.StringSet("key", "a", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringAppend("key", "b");
@@ -57,7 +57,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringAppendAsync_Simple()
         {
-            await _memDb.StringSetAsync("key", "a");
+            await _memDb.StringSetAsync("key", "a", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringAppendAsync("key", "b");
@@ -72,7 +72,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringAppendAsync_InRedis_Notification()
         {
-            await _memDb.StringSetAsync("key", "a");
+            await _memDb.StringSetAsync("key", "a", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _otherClientDb.StringAppendAsync("key", "b");

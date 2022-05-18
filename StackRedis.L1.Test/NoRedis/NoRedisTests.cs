@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace StackRedis.L1.Test.NoRedis
         public void NoRedis_StringGet()
         {
             RedisL1Database db = new RedisL1Database("unique str");
-            db.StringSet("nodbkey", "value");
+            db.StringSet("nodbkey", "value", null, When.Always);
             Assert.AreEqual("value", (string)db.StringGet("nodbkey"));
         }
     }

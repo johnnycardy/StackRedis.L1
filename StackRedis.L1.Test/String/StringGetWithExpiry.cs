@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using StackExchange.Redis;
 
 namespace StackRedis.L1.Test.String
 {
@@ -47,7 +48,7 @@ namespace StackRedis.L1.Test.String
         [TestMethod]
         public void StringGetWithExpiry_StringAndExpirySetInMem()
         {
-            _memDb.StringSet("key1", "val", TimeSpan.FromDays(1));
+            _memDb.StringSet("key1", "val", TimeSpan.FromDays(1), When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = _memDb.StringGetWithExpiry("key1");
@@ -60,7 +61,7 @@ namespace StackRedis.L1.Test.String
         [TestMethod]
         public void StringGetWithExpiry_StringAndNoExpirySetInMem()
         {
-            _memDb.StringSet("key1", "val");
+            _memDb.StringSet("key1", "val", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             var result = _memDb.StringGetWithExpiry("key1");

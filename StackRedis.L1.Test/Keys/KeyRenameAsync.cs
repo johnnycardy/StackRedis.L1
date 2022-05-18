@@ -13,7 +13,7 @@ namespace StackRedis.L1.Test
         public async Task KeyRenameAsync_Simple()
         {
             //Create a key
-            await _memDb.StringSetAsync("key1", "str");
+            await _memDb.StringSetAsync("key1", "str", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             //Rename it
@@ -33,7 +33,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task KeyRenameAsync_ExpiryStillSet()
         {
-            await _memDb.StringSetAsync("key1", "value1");
+            await _memDb.StringSetAsync("key1", "value1", null, When.Always);
 
             //Now expire it
             await _memDb.KeyExpireAsync("key1", DateTime.UtcNow.AddMilliseconds(20));
@@ -53,8 +53,8 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task KeyRenameAsync_NewKeyAlreadyExists()
         {
-            await _memDb.StringSetAsync("key1", "value1");
-            await _memDb.StringSetAsync("key2", "value2");
+            await _memDb.StringSetAsync("key1", "value1", null, When.Always);
+            await _memDb.StringSetAsync("key2", "value2", null, When.Always);
 
             //Rename the key
             await _memDb.KeyRenameAsync("key1", "key2");

@@ -12,7 +12,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public void StringSetBit_Simple()
         {
-            _memDb.StringSet("key", "value");
+            _memDb.StringSet("key", "value", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _memDb.StringSetBit("key", 2, false);
@@ -28,7 +28,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringSetBit_InRedis_Notification()
         {
-            _memDb.StringSet("key", "value");
+            _memDb.StringSet("key", "value", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             _otherClientDb.StringSetBit("key", 2, false);
@@ -46,7 +46,7 @@ namespace StackRedis.L1.Test
         [TestMethod]
         public async Task StringSetBitAsync_Simple()
         {
-            await _memDb.StringSetAsync("key", "value");
+            await _memDb.StringSetAsync("key", "value", null, When.Always);
             Assert.AreEqual(1, CallsByMemDb);
 
             await _memDb.StringSetBitAsync("key", 2, false);
